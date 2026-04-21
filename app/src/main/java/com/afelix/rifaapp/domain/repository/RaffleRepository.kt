@@ -13,5 +13,6 @@ interface RaffleRepository {
     
     fun getTicketsByRaffleId(raffleId: Long): Flow<List<Ticket>>
     suspend fun updateTicket(ticket: Ticket)
+    suspend fun updateTickets(tickets: List<Ticket>)
     suspend fun insertTickets(tickets: List<Ticket>)
 }

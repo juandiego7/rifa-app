@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.runtime.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
@@ -20,6 +21,7 @@ import com.afelix.rifaapp.ui.viewmodel.RifaViewModelFactory
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        installSplashScreen()
         super.onCreate(savedInstanceState)
         
         val db = Room.databaseBuilder(
@@ -37,7 +39,8 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val viewModel: RifaViewModel = viewModel(factory = viewModelFactory)
                 
-                var ticketToAssign by remember { mutableStateOf<Ticket?>(null) }
+                var ticketsToAssign by remember { mutableStateOf<List<Ticket>?>(null) }
+                var ticketsToPreview by remember { mutableStateOf<List<Ticket>?>(null) }
 
                 NavHost(navController = navController, startDestination = "list") {
                     composable("list") {
@@ -75,20 +78,32 @@ class MainActivity : ComponentActivity() {
                             tickets = tickets,
                             stats = stats,
                             onBack = { navController.popBackStack() },
-                            onTicketClick = { ticket ->
-                                ticketToAssign = ticket
+                            onTicketsAssign = { selectedTickets ->
+                                ticketsToAssign = selectedTickets
                             }
                         )
                         
-                        ticketToAssign?.let { ticket ->
+                        ticketsToAssign?.let { selectedTickets ->
                             TicketAssignmentDialog(
-                                ticket = ticket,
+                                tickets = selectedTickets,
                                 digits = raffle?.digits ?: 2,
-                                onDismiss = { ticketToAssign = null },
-                                onConfirm = { updatedTicket ->
-                                    viewModel.updateTicket(updatedTicket)
-                                    ticketToAssign = null
+                                onDismiss = { ticketsToAssign = null },
+                                onConfirm = { updatedTickets ->
+                                    viewModel.updateTickets(updatedTickets)
+                                    ticketsToAssign = null
+                                    // Solo mostramos el ticket si se asignó a alguien (no si se liberó)
+                                    if (updatedTickets.any { it.status != com.afelix.rifaapp.domain.model.TicketStatus.AVAILABLE }) {
+                                        ticketsToPreview = updatedTickets
+                                    }
                                 }
+                            )
+                        }
+
+                        if (ticketsToPreview != null && raffle != null) {
+                            TicketPreviewDialog(
+                                raffle = raffle!!,
+                                tickets = ticketsToPreview!!,
+                                onDismiss = { ticketsToPreview = null }
                             )
                         }
                     }

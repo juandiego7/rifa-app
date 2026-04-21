@@ -31,6 +31,9 @@ class RaffleRepositoryImpl(private val dao: RaffleDao) : RaffleRepository {
     override suspend fun updateTicket(ticket: Ticket) =
         dao.updateTicket(ticket.toEntity())
 
+    override suspend fun updateTickets(tickets: List<Ticket>) =
+        dao.updateTickets(tickets.map { it.toEntity() })
+
     override suspend fun insertTickets(tickets: List<Ticket>) =
         dao.insertTickets(tickets.map { it.toEntity() })
 }

@@ -66,6 +66,12 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
         }
     }
 
+    fun updateTickets(tickets: List<Ticket>) {
+        viewModelScope.launch {
+            repository.updateTickets(tickets)
+        }
+    }
+
     fun deleteRaffle(raffle: Raffle) {
         viewModelScope.launch {
             repository.deleteRaffle(raffle)

@@ -117,7 +117,16 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
                     }
                 }
             }
-            Text(text = raffle.description, style = MaterialTheme.typography.bodyMedium)
+            
+            // Si el premio es dinero, mostramos el formato de moneda. Si es texto, mostramos la descripción.
+            val prizeText = if (raffle.prizeValue > 0) {
+                "Premio: ${CurrencyFormatter.format(raffle.prizeValue)}"
+            } else {
+                raffle.description
+            }
+            
+            Text(text = prizeText, style = MaterialTheme.typography.bodyMedium, color = if(raffle.prizeValue > 0) Color(0xFF4CAF50) else MaterialTheme.colorScheme.onSurface)
+
             Text(
                 text = "Juega el: ${DateFormatter.format(raffle.drawDate)}",
                 style = MaterialTheme.typography.labelSmall,

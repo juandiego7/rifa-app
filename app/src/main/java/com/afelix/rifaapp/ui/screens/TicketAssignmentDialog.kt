@@ -7,7 +7,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import com.afelix.rifaapp.domain.model.Ticket
 import com.afelix.rifaapp.domain.model.TicketStatus
@@ -15,22 +14,26 @@ import com.afelix.rifaapp.domain.model.TicketStatus
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TicketAssignmentDialog(
-    ticket: Ticket,
+    tickets: List<Ticket>,
     digits: Int,
     onDismiss: () -> Unit,
-    onConfirm: (Ticket) -> Unit
+    onConfirm: (List<Ticket>) -> Unit
 ) {
-    var name by remember { mutableStateOf(ticket.customerName ?: "") }
-    var phone by remember { mutableStateOf(ticket.customerPhone ?: "") }
-    var status by remember { mutableStateOf(ticket.status) }
-
-    val formattedNumber = ticket.number.toString().padStart(digits, '0')
+    // If multiple tickets, start with empty fields or common values
+    val firstTicket = tickets.firstOrNull()
+    var name by remember { mutableStateOf(if (tickets.size == 1) firstTicket?.customerName ?: "" else "") }
+    var phone by remember { mutableStateOf(if (tickets.size == 1) firstTicket?.customerPhone ?: "" else "") }
+    var status by remember { mutableStateOf(if (tickets.size == 1) firstTicket?.status ?: TicketStatus.RESERVED else TicketStatus.RESERVED) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
-                text = "Boleta #$formattedNumber",
+                text = if (tickets.size == 1) {
+                    "Boleta #${tickets.first().number.toString().padStart(digits, '0')}"
+                } else {
+                    "Asignar ${tickets.size} Boletas"
+                },
                 modifier = Modifier.fillMaxWidth(),
                 textAlign = TextAlign.Center
             )
@@ -41,12 +44,20 @@ fun TicketAssignmentDialog(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                TicketCircle(
-                    ticket = ticket.copy(status = status),
-                    digits = digits,
-                    onClick = {},
-                    modifier = Modifier.size(80.dp)
-                )
+                if (tickets.size == 1) {
+                    TicketCircle(
+                        ticket = tickets.first().copy(status = status),
+                        digits = digits,
+                        onClick = {},
+                        modifier = Modifier.size(80.dp)
+                    )
+                } else {
+                    Text(
+                        text = tickets.joinToString(", ") { it.number.toString().padStart(digits, '0') },
+                        style = MaterialTheme.typography.bodySmall,
+                        textAlign = TextAlign.Center
+                    )
+                }
 
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedTextField(
@@ -103,26 +114,32 @@ fun TicketAssignmentDialog(
         },
         confirmButton = {
             Row {
-                if (ticket.status != TicketStatus.AVAILABLE) {
+                if (tickets.all { it.status != TicketStatus.AVAILABLE }) {
                     TextButton(
                         onClick = {
-                            onConfirm(ticket.copy(
-                                customerName = null,
-                                customerPhone = null,
-                                status = TicketStatus.AVAILABLE
-                            ))
+                            val updatedTickets = tickets.map {
+                                it.copy(
+                                    customerName = null,
+                                    customerPhone = null,
+                                    status = TicketStatus.AVAILABLE
+                                )
+                            }
+                            onConfirm(updatedTickets)
                         },
                         colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                     ) {
-                        Text("Liberar Boleta")
+                        Text("Liberar Todas")
                     }
                 }
                 TextButton(onClick = {
-                    onConfirm(ticket.copy(
-                        customerName = if (status == TicketStatus.AVAILABLE) null else name,
-                        customerPhone = if (status == TicketStatus.AVAILABLE) null else phone,
-                        status = status
-                    ))
+                    val updatedTickets = tickets.map {
+                        it.copy(
+                            customerName = if (status == TicketStatus.AVAILABLE) null else name,
+                            customerPhone = if (status == TicketStatus.AVAILABLE) null else phone,
+                            status = status
+                        )
+                    }
+                    onConfirm(updatedTickets)
                 }) {
                     Text("Confirmar")
                 }

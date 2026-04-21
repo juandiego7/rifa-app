@@ -22,17 +22,25 @@ fun CreateRaffleScreen(
     onBack: () -> Unit,
     onSave: (Raffle) -> Unit
 ) {
-    var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    var digits by remember { mutableStateOf("2") }
+    var prize by remember { mutableStateOf("") }
     var maxNumber by remember { mutableStateOf("100") }
     var ticketValue by remember { mutableStateOf("") }
-    var prizeValue by remember { mutableStateOf("") }
+
+    var descriptionTouched by remember { mutableStateOf(false) }
+    var prizeTouched by remember { mutableStateOf(false) }
+    var maxNumberTouched by remember { mutableStateOf(false) }
+    var ticketValueTouched by remember { mutableStateOf(false) }
+    
+    val lettersOnly = remember { Regex("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]*$") }
+    val alphanumeric = remember { Regex("^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\\s]*$") }
+    val numbersOnly = remember { Regex("^[0-9]*$") }
+    val decimalOnly = remember { Regex("^[0-9]*\\.?[0-9]*$") }
 
     var showDatePicker by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = Calendar.getInstance().apply {
-            add(Calendar.DAY_OF_YEAR, 7) // Predeterminado: dentro de una semana
+            add(Calendar.DAY_OF_YEAR, 7)
         }.timeInMillis
     )
 
@@ -75,52 +83,60 @@ fun CreateRaffleScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
-                label = { Text("Título") },
-                modifier = Modifier.fillMaxWidth()
+                value = description,
+                onValueChange = { 
+                    descriptionTouched = true
+                    if (it.matches(lettersOnly)) description = it 
+                },
+                label = { Text("Descripción de la Rifa") },
+                placeholder = { Text("Solo letras") },
+                modifier = Modifier.fillMaxWidth(),
+                isError = descriptionTouched && description.isBlank()
             )
             OutlinedTextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text("Descripción del premio") },
-                modifier = Modifier.fillMaxWidth()
+                value = prize,
+                onValueChange = { 
+                    prizeTouched = true
+                    if (it.matches(alphanumeric)) prize = it 
+                },
+                label = { Text("Premio") },
+                placeholder = { Text("Letras o monto de dinero") },
+                modifier = Modifier.fillMaxWidth(),
+                isError = prizeTouched && prize.isBlank()
             )
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = digits,
-                    onValueChange = { digits = it },
-                    label = { Text("Dígitos") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f)
-                )
-                OutlinedTextField(
-                    value = maxNumber,
-                    onValueChange = { maxNumber = it },
-                    label = { Text("Cant. Boletas") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1f)
-                )
-            }
+            
+            OutlinedTextField(
+                value = maxNumber,
+                onValueChange = { 
+                    maxNumberTouched = true
+                    if (it.matches(numbersOnly)) {
+                        if (it.isEmpty() || (it.toIntOrNull() ?: 0) <= 10000) {
+                            maxNumber = it
+                        }
+                    }
+                },
+                label = { Text("Cantidad de Boletas (Máx. 10.000)") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth(),
+                isError = maxNumberTouched && (maxNumber.isBlank() || (maxNumber.toIntOrNull() ?: 0) == 0)
+            )
+            
             OutlinedTextField(
                 value = ticketValue,
-                onValueChange = { ticketValue = it },
-                label = { Text("Valor de la boleta") },
+                onValueChange = { 
+                    ticketValueTouched = true
+                    if (it.matches(decimalOnly)) ticketValue = it 
+                },
+                label = { Text("Valor de la Boleta") },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                modifier = Modifier.fillMaxWidth()
-            )
-            OutlinedTextField(
-                value = prizeValue,
-                onValueChange = { prizeValue = it },
-                label = { Text("Valor del premio") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                isError = ticketValueTouched && ticketValue.isBlank()
             )
 
             OutlinedTextField(
                 value = DateFormatter.format(datePickerState.selectedDateMillis ?: System.currentTimeMillis()),
                 onValueChange = { },
-                label = { Text("Fecha del sorteo") },
+                label = { Text("Fecha del Sorteo") },
                 modifier = Modifier.fillMaxWidth(),
                 readOnly = true,
                 trailingIcon = {
@@ -130,21 +146,31 @@ fun CreateRaffleScreen(
                 }
             )
             
+            val isFormValid = description.isNotBlank() && 
+                             prize.isNotBlank() && 
+                             maxNumber.isNotBlank() && 
+                             (maxNumber.toIntOrNull() ?: 0) > 0 &&
+                             ticketValue.isNotBlank()
+
             Button(
                 onClick = {
+                    val count = maxNumber.toIntOrNull() ?: 0
+                    val calculatedDigits = if (count > 0) (count - 1).toString().length else 1
+                    val prizeAsAmount = prize.toDoubleOrNull()
+                    
                     val raffle = Raffle(
-                        title = title,
-                        description = description,
-                        digits = digits.toIntOrNull() ?: 2,
-                        maxNumber = maxNumber.toIntOrNull() ?: 100,
+                        title = description,
+                        description = prize, // Guardamos el texto original (ya sea "Moto" o "1000000")
+                        digits = calculatedDigits,
+                        maxNumber = count,
                         ticketValue = ticketValue.toDoubleOrNull() ?: 0.0,
-                        prizeValue = prizeValue.toDoubleOrNull() ?: 0.0,
+                        prizeValue = prizeAsAmount ?: 0.0, // Room guardará el número si existe
                         drawDate = datePickerState.selectedDateMillis ?: System.currentTimeMillis()
                     )
                     onSave(raffle)
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = title.isNotBlank() && maxNumber.isNotBlank() && digits.isNotBlank()
+                enabled = isFormValid
             ) {
                 Text("Crear Rifa")
             }

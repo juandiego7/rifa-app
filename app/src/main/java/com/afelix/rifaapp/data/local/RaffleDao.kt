@@ -28,4 +28,7 @@ interface RaffleDao {
 
     @Update
     suspend fun updateTicket(ticket: TicketEntity)
+
+    @Update
+    suspend fun updateTickets(tickets: List<TicketEntity>)
 }
