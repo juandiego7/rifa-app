@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.afelix.rifaapp.domain.model.Raffle
 import com.afelix.rifaapp.domain.model.RaffleDashboardStats
 import com.afelix.rifaapp.domain.model.Ticket
+import com.afelix.rifaapp.domain.model.TicketStatus
 import com.afelix.rifaapp.domain.repository.RaffleRepository
 import com.afelix.rifaapp.domain.usecase.CreateRaffleUseCase
 import com.afelix.rifaapp.domain.usecase.GetRaffleDashboardStatsUseCase
@@ -20,8 +21,16 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
     private val createRaffleUseCase = CreateRaffleUseCase(repository)
     private val getStatsUseCase = GetRaffleDashboardStatsUseCase()
 
-    val raffles: StateFlow<List<Raffle>> = getRafflesUseCase()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    val raffles: StateFlow<List<Raffle>> = repository.getRaffles().flatMapLatest { raffleList ->
+        if (raffleList.isEmpty()) return@flatMapLatest flowOf(emptyList<Raffle>())
+        
+        val flows = raffleList.map { raffle ->
+            repository.getTicketsByRaffleId(raffle.id).map { tickets ->
+                raffle.copy(stats = getStatsUseCase(tickets, raffle.ticketValue))
+            }
+        }
+        combine(flows) { it.toList() }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _selectedRaffle = MutableStateFlow<Raffle?>(null)
     val selectedRaffle = _selectedRaffle.asStateFlow()
@@ -54,6 +63,12 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
     fun updateTicket(ticket: Ticket) {
         viewModelScope.launch {
             repository.updateTicket(ticket)
+        }
+    }
+
+    fun deleteRaffle(raffle: Raffle) {
+        viewModelScope.launch {
+            repository.deleteRaffle(raffle)
         }
     }
 }

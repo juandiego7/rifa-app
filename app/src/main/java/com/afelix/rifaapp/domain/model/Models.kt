@@ -1,7 +1,5 @@
 package com.afelix.rifaapp.domain.model
 
-import java.util.Date
-
 data class Raffle(
     val id: Long = 0,
     val title: String,
@@ -11,7 +9,8 @@ data class Raffle(
     val ticketValue: Double,
     val prizeValue: Double,
     val drawDate: Long,
-    val status: RaffleStatus = RaffleStatus.ACTIVE
+    val status: RaffleStatus = RaffleStatus.ACTIVE,
+    val stats: RaffleDashboardStats? = null
 )
 
 enum class RaffleStatus {

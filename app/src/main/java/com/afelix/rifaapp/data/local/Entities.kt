@@ -1,6 +1,7 @@
 package com.afelix.rifaapp.data.local
 
 import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import com.afelix.rifaapp.domain.model.Raffle
 import com.afelix.rifaapp.domain.model.RaffleStatus
@@ -20,7 +21,17 @@ data class RaffleEntity(
     val status: String
 )
 
-@Entity(tableName = "tickets")
+@Entity(
+    tableName = "tickets",
+    foreignKeys = [
+        ForeignKey(
+            entity = RaffleEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["raffleId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ]
+)
 data class TicketEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val raffleId: Long,

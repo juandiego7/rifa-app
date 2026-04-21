@@ -18,6 +18,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.afelix.rifaapp.core.util.CurrencyFormatter
+import com.afelix.rifaapp.core.util.DateFormatter
 import com.afelix.rifaapp.domain.model.Raffle
 import com.afelix.rifaapp.domain.model.RaffleDashboardStats
 import com.afelix.rifaapp.domain.model.Ticket
@@ -51,7 +53,7 @@ fun RaffleDetailScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            DashboardSection(stats)
+            DashboardSection(raffle, stats)
             
             Text(
                 text = "Boletas",
@@ -70,7 +72,10 @@ fun RaffleDetailScreen(
                     TicketCircle(
                         ticket = ticket,
                         digits = raffle.digits,
-                        onClick = { onTicketClick(ticket) }
+                        onClick = { onTicketClick(ticket) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
                     )
                 }
             }
@@ -79,7 +84,7 @@ fun RaffleDetailScreen(
 }
 
 @Composable
-fun DashboardSection(stats: RaffleDashboardStats) {
+fun DashboardSection(raffle: Raffle, stats: RaffleDashboardStats) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -87,7 +92,14 @@ fun DashboardSection(stats: RaffleDashboardStats) {
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = "Resumen", style = MaterialTheme.typography.titleSmall)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(text = "Resumen", style = MaterialTheme.typography.titleSmall)
+                Text(
+                    text = "Sorteo: ${DateFormatter.format(raffle.drawDate)}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
             Spacer(modifier = Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 StatItem(label = "Vendidas", value = stats.soldTickets.toString())
@@ -96,8 +108,8 @@ fun DashboardSection(stats: RaffleDashboardStats) {
             }
             Spacer(modifier = Modifier.height(8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                StatItem(label = "Recaudado", value = "$${stats.moneyCollected}")
-                StatItem(label = "En reserva", value = "$${stats.moneyReserved}")
+                StatItem(label = "Recaudado", value = CurrencyFormatter.format(stats.moneyCollected))
+                StatItem(label = "En reserva", value = CurrencyFormatter.format(stats.moneyReserved))
             }
         }
     }
@@ -112,7 +124,12 @@ fun StatItem(label: String, value: String) {
 }
 
 @Composable
-fun TicketCircle(ticket: Ticket, digits: Int, onClick: () -> Unit) {
+fun TicketCircle(
+    ticket: Ticket,
+    digits: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val backgroundColor = when (ticket.status) {
         TicketStatus.AVAILABLE -> MaterialTheme.colorScheme.surfaceVariant
         TicketStatus.RESERVED -> Color(0xFFFFD54F) // Un amarillo más cálido
@@ -128,9 +145,7 @@ fun TicketCircle(ticket: Ticket, digits: Int, onClick: () -> Unit) {
     
     Surface(
         onClick = onClick,
-        modifier = Modifier
-            .size(60.dp)
-            .padding(4.dp),
+        modifier = modifier.padding(4.dp),
         shape = CircleShape,
         color = backgroundColor,
         contentColor = contentColor,

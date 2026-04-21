@@ -6,12 +6,15 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.afelix.rifaapp.core.util.DateFormatter
 import com.afelix.rifaapp.domain.model.Raffle
+import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,6 +28,31 @@ fun CreateRaffleScreen(
     var maxNumber by remember { mutableStateOf("100") }
     var ticketValue by remember { mutableStateOf("") }
     var prizeValue by remember { mutableStateOf("") }
+
+    var showDatePicker by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = Calendar.getInstance().apply {
+            add(Calendar.DAY_OF_YEAR, 7) // Predeterminado: dentro de una semana
+        }.timeInMillis
+    )
+
+    if (showDatePicker) {
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancelar")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -88,6 +116,19 @@ fun CreateRaffleScreen(
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 modifier = Modifier.fillMaxWidth()
             )
+
+            OutlinedTextField(
+                value = DateFormatter.format(datePickerState.selectedDateMillis ?: System.currentTimeMillis()),
+                onValueChange = { },
+                label = { Text("Fecha del sorteo") },
+                modifier = Modifier.fillMaxWidth(),
+                readOnly = true,
+                trailingIcon = {
+                    IconButton(onClick = { showDatePicker = true }) {
+                        Icon(Icons.Default.DateRange, contentDescription = "Seleccionar fecha")
+                    }
+                }
+            )
             
             Button(
                 onClick = {
@@ -98,7 +139,7 @@ fun CreateRaffleScreen(
                         maxNumber = maxNumber.toIntOrNull() ?: 100,
                         ticketValue = ticketValue.toDoubleOrNull() ?: 0.0,
                         prizeValue = prizeValue.toDoubleOrNull() ?: 0.0,
-                        drawDate = System.currentTimeMillis()
+                        drawDate = datePickerState.selectedDateMillis ?: System.currentTimeMillis()
                     )
                     onSave(raffle)
                 },

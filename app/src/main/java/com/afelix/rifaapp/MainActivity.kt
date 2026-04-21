@@ -25,7 +25,8 @@ class MainActivity : ComponentActivity() {
         val db = Room.databaseBuilder(
             applicationContext,
             RaffleDatabase::class.java, "rifa-db"
-        ).build()
+        ).fallbackToDestructiveMigration(dropAllTables = true)
+            .build()
         
         val repository = RaffleRepositoryImpl(db.raffleDao)
         val viewModelFactory = RifaViewModelFactory(repository)
@@ -49,6 +50,9 @@ class MainActivity : ComponentActivity() {
                             },
                             onCreateRaffleClick = {
                                 navController.navigate("create")
+                            },
+                            onDeleteRaffle = { raffle ->
+                                viewModel.deleteRaffle(raffle)
                             }
                         )
                     }
@@ -79,6 +83,7 @@ class MainActivity : ComponentActivity() {
                         ticketToAssign?.let { ticket ->
                             TicketAssignmentDialog(
                                 ticket = ticket,
+                                digits = raffle?.digits ?: 2,
                                 onDismiss = { ticketToAssign = null },
                                 onConfirm = { updatedTicket ->
                                     viewModel.updateTicket(updatedTicket)

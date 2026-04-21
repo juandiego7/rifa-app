@@ -5,12 +5,18 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import com.afelix.rifaapp.domain.model.Ticket
 import com.afelix.rifaapp.domain.model.TicketStatus
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun TicketAssignmentDialog(
     ticket: Ticket,
+    digits: Int,
     onDismiss: () -> Unit,
     onConfirm: (Ticket) -> Unit
 ) {
@@ -18,39 +24,80 @@ fun TicketAssignmentDialog(
     var phone by remember { mutableStateOf(ticket.customerPhone ?: "") }
     var status by remember { mutableStateOf(ticket.status) }
 
+    val formattedNumber = ticket.number.toString().padStart(digits, '0')
+
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Asignar Boleta #${ticket.number}") },
+        title = {
+            Text(
+                text = "Boleta #$formattedNumber",
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+        },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Nombre del cliente") }
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                TicketCircle(
+                    ticket = ticket.copy(status = status),
+                    digits = digits,
+                    onClick = {},
+                    modifier = Modifier.size(80.dp)
                 )
-                OutlinedTextField(
-                    value = phone,
-                    onValueChange = { phone = it },
-                    label = { Text("Teléfono") }
-                )
-                
-                Text("Estado:")
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(
-                        selected = status == TicketStatus.RESERVED,
-                        onClick = { status = TicketStatus.RESERVED },
-                        label = { Text("Reservado") }
+
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        label = { Text("Nombre del cliente") },
+                        modifier = Modifier.fillMaxWidth()
                     )
-                    FilterChip(
-                        selected = status == TicketStatus.PAID,
-                        onClick = { status = TicketStatus.PAID },
-                        label = { Text("Pagado") }
+                    OutlinedTextField(
+                        value = phone,
+                        onValueChange = { phone = it },
+                        label = { Text("Teléfono") },
+                        modifier = Modifier.fillMaxWidth()
                     )
-                    FilterChip(
-                        selected = status == TicketStatus.AVAILABLE,
-                        onClick = { status = TicketStatus.AVAILABLE },
-                        label = { Text("Disponible") }
-                    )
+                    
+                    Text("Estado:")
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        FilterChip(
+                            selected = status == TicketStatus.RESERVED,
+                            onClick = { status = TicketStatus.RESERVED },
+                            label = { Text("Reservado") },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = Color(0xFFFFD54F),
+                                selectedLabelColor = Color.Black
+                            ),
+                            modifier = Modifier.padding(horizontal = 4.dp)
+                        )
+                        FilterChip(
+                            selected = status == TicketStatus.PAID,
+                            onClick = { status = TicketStatus.PAID },
+                            label = { Text("Pagado") },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = Color(0xFF81C784),
+                                selectedLabelColor = Color.Black
+                            ),
+                            modifier = Modifier.padding(horizontal = 4.dp)
+                        )
+                        FilterChip(
+                            selected = status == TicketStatus.AVAILABLE,
+                            onClick = { status = TicketStatus.AVAILABLE },
+                            label = { Text("Disponible") },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                            ),
+                            modifier = Modifier.padding(horizontal = 4.dp)
+                        )
+                    }
                 }
             }
         },
