@@ -114,26 +114,39 @@ fun StatItem(label: String, value: String) {
 @Composable
 fun TicketCircle(ticket: Ticket, digits: Int, onClick: () -> Unit) {
     val backgroundColor = when (ticket.status) {
-        TicketStatus.AVAILABLE -> Color.LightGray
-        TicketStatus.RESERVED -> Color.Yellow
-        TicketStatus.PAID -> Color.Green
+        TicketStatus.AVAILABLE -> MaterialTheme.colorScheme.surfaceVariant
+        TicketStatus.RESERVED -> Color(0xFFFFD54F) // Un amarillo más cálido
+        TicketStatus.PAID -> Color(0xFF81C784) // Un verde más agradable
+    }
+    
+    val contentColor = when (ticket.status) {
+        TicketStatus.AVAILABLE -> MaterialTheme.colorScheme.onSurfaceVariant
+        else -> Color.Black
     }
     
     val formattedNumber = ticket.number.toString().padStart(digits, '0')
     
-    Box(
+    Surface(
+        onClick = onClick,
         modifier = Modifier
-            .size(50.dp)
-            .clip(CircleShape)
-            .background(backgroundColor)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
+            .size(60.dp)
+            .padding(4.dp),
+        shape = CircleShape,
+        color = backgroundColor,
+        contentColor = contentColor,
+        tonalElevation = 2.dp,
+        shadowElevation = 4.dp
     ) {
-        Text(
-            text = formattedNumber,
-            fontSize = 14.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black
-        )
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = formattedNumber,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp
+            )
+        }
     }
 }
