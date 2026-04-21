@@ -55,14 +55,30 @@ fun TicketAssignmentDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = {
-                onConfirm(ticket.copy(
-                    customerName = if (status == TicketStatus.AVAILABLE) null else name,
-                    customerPhone = if (status == TicketStatus.AVAILABLE) null else phone,
-                    status = status
-                ))
-            }) {
-                Text("Confirmar")
+            Row {
+                if (ticket.status != TicketStatus.AVAILABLE) {
+                    TextButton(
+                        onClick = {
+                            onConfirm(ticket.copy(
+                                customerName = null,
+                                customerPhone = null,
+                                status = TicketStatus.AVAILABLE
+                            ))
+                        },
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Text("Liberar Boleta")
+                    }
+                }
+                TextButton(onClick = {
+                    onConfirm(ticket.copy(
+                        customerName = if (status == TicketStatus.AVAILABLE) null else name,
+                        customerPhone = if (status == TicketStatus.AVAILABLE) null else phone,
+                        status = status
+                    ))
+                }) {
+                    Text("Confirmar")
+                }
             }
         },
         dismissButton = {
