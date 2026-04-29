@@ -102,10 +102,10 @@ fun RaffleDetailScreen(
             
             if (isGridView) {
                 LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 50.dp),
-                    contentPadding = PaddingValues(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    columns = GridCells.Adaptive(minSize = 44.dp),
+                    contentPadding = PaddingValues(4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
                     modifier = Modifier.weight(1f)
                 ) {
                     items(tickets) { ticket ->
@@ -115,7 +115,7 @@ fun RaffleDetailScreen(
                             digits = raffle.digits,
                             isSelected = isSelected,
                             showBadge = true,
-                            showName = true, // Show name in grid
+                            showName = true,
                             onClick = {
                                 if (isSelectionMode) {
                                     selectedIds = if (isSelected) selectedIds - ticket.id else selectedIds + ticket.id
@@ -137,8 +137,8 @@ fun RaffleDetailScreen(
             } else {
                 LazyColumn(
                     modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     items(tickets) { ticket ->
                         val isSelected = ticket.id in selectedIds
@@ -173,7 +173,7 @@ fun DashboardSection(raffle: Raffle, stats: RaffleDashboardStats, onDrawWinner: 
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 2.dp
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
             // Prize and Date Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -197,20 +197,20 @@ fun DashboardSection(raffle: Raffle, stats: RaffleDashboardStats, onDrawWinner: 
                 )
             }
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             if (raffle.status == RaffleStatus.FINISHED && raffle.winningNumber != null) {
                 Surface(
                     color = Color(0xFFFFEB3B),
                     shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
                 ) {
                     Row(
-                        modifier = Modifier.padding(12.dp),
+                        modifier = Modifier.padding(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.Center
                     ) {
-                        Icon(Icons.Default.EmojiEvents, null, tint = Color(0xFFF57F17))
+                        Icon(Icons.Default.EmojiEvents, null, tint = Color(0xFFF57F17), modifier = Modifier.size(18.dp))
                         Spacer(Modifier.width(8.dp))
                         Text(
                             text = "GANADOR: ${raffle.winningNumber.toString().padStart(raffle.digits, '0')}",
@@ -254,15 +254,16 @@ fun DashboardSection(raffle: Raffle, stats: RaffleDashboardStats, onDrawWinner: 
             }
 
             if (raffle.status == RaffleStatus.ACTIVE) {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 Button(
                     onClick = onDrawWinner,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().height(36.dp),
+                    contentPadding = PaddingValues(0.dp),
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
-                    Icon(Icons.Default.Casino, null)
+                    Icon(Icons.Default.Casino, null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("Realizar Sorteo")
+                    Text("Realizar Sorteo", style = MaterialTheme.typography.labelLarge)
                 }
             }
         }
@@ -284,15 +285,15 @@ fun CompactInfoCard(
         shape = RoundedCornerShape(8.dp)
     ) {
         Column(
-            modifier = Modifier.padding(8.dp),
+            modifier = Modifier.padding(6.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(14.dp))
+                Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(12.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = label, style = MaterialTheme.typography.labelSmall, fontSize = 9.sp, color = color.copy(alpha = 0.8f))
+                Text(text = label, style = MaterialTheme.typography.labelSmall, fontSize = 8.sp, color = color.copy(alpha = 0.8f))
             }
-            Text(text = value, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = color)
+            Text(text = value, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = color, fontSize = 10.sp)
         }
     }
 }
@@ -306,8 +307,6 @@ fun TicketListItem(
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
-    val formattedNumber = ticket.number.toString().padStart(digits, '0')
-    
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -319,46 +318,37 @@ fun TicketListItem(
         shape = RoundedCornerShape(8.dp)
     ) {
         Row(
-            modifier = Modifier.padding(vertical = 6.dp, horizontal = 8.dp),
+            modifier = Modifier.padding(vertical = 2.dp, horizontal = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Visual circle without name in list mode
             TicketCircle(
                 ticket = ticket,
                 digits = digits,
                 isSelected = isSelected,
                 showBadge = false,
-                showName = false, // Hide name in list mode
+                showName = false,
                 onClick = onClick,
                 onLongClick = onLongClick,
-                modifier = Modifier.size(40.dp)
+                modifier = Modifier.size(32.dp)
             )
             
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(12.dp))
             
             Column(modifier = Modifier.weight(1f)) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "#$formattedNumber",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = if (ticket.status == TicketStatus.AVAILABLE) "Disponible" else (ticket.customerName ?: "Sin nombre"),
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = if (ticket.status == TicketStatus.AVAILABLE) FontWeight.Normal else FontWeight.Bold,
-                        color = if (ticket.status == TicketStatus.AVAILABLE) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1
-                    )
-                }
+                Text(
+                    text = if (ticket.status == TicketStatus.AVAILABLE) "Disponible" else (ticket.customerName ?: "Sin nombre"),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = if (ticket.status == TicketStatus.AVAILABLE) FontWeight.Normal else FontWeight.Bold,
+                    color = if (ticket.status == TicketStatus.AVAILABLE) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1
+                )
                 
                 if (!ticket.customerPhone.isNullOrBlank()) {
                     Text(
                         text = ticket.customerPhone,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 10.sp
                     )
                 }
             }
@@ -367,7 +357,7 @@ fun TicketListItem(
                 Icon(
                     Icons.Default.Check,
                     contentDescription = null,
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(18.dp),
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
@@ -403,7 +393,7 @@ fun TicketCircle(
     
     val formattedNumber = ticket.number.toString().padStart(digits, '0')
     
-    Box(modifier = modifier.padding(2.dp), contentAlignment = Alignment.TopEnd) {
+    Box(modifier = modifier.padding(1.dp), contentAlignment = Alignment.TopEnd) {
         Surface(
             modifier = Modifier.fillMaxSize(),
             shape = CircleShape,
@@ -426,18 +416,19 @@ fun TicketCircle(
                         text = formattedNumber,
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        fontSize = if (digits > 3) 10.sp else 14.sp
+                        fontSize = if (digits > 3) 9.sp else 12.sp,
+                        lineHeight = if (digits > 3) 10.sp else 14.sp
                     )
                     if (showName && !ticket.customerName.isNullOrBlank()) {
                         Text(
                             text = ticket.customerName,
                             style = MaterialTheme.typography.labelSmall,
-                            fontSize = 7.sp,
+                            fontSize = 6.sp,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(horizontal = 6.dp),
+                            modifier = Modifier.padding(horizontal = 4.dp),
                             textAlign = TextAlign.Center,
-                            lineHeight = 8.sp
+                            lineHeight = 7.sp
                         )
                     }
                 }
@@ -447,15 +438,15 @@ fun TicketCircle(
         if (isSelected && showBadge) {
             Box(
                 modifier = Modifier
-                    .size(18.dp)
-                    .offset(x = (2).dp, y = (-2).dp)
+                    .size(14.dp)
+                    .offset(x = (1).dp, y = (-1).dp)
                     .background(MaterialTheme.colorScheme.primary, CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     Icons.Default.Check,
                     contentDescription = null,
-                    modifier = Modifier.size(12.dp),
+                    modifier = Modifier.size(10.dp),
                     tint = MaterialTheme.colorScheme.onPrimary
                 )
             }

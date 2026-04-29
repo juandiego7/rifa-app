@@ -8,11 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccountBalanceWallet
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.MonetizationOn
-import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -27,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.afelix.rifaapp.core.util.CurrencyFormatter
 import com.afelix.rifaapp.core.util.DateFormatter
 import com.afelix.rifaapp.domain.model.Raffle
+import com.afelix.rifaapp.domain.model.RaffleStatus
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,7 +35,7 @@ fun RaffleListScreen(
 ) {
     var raffleToDelete by remember { mutableStateOf<Raffle?>(null) }
 
-    if (raffleToDelete != null) {
+    if ( raffleToDelete != null ) {
         AlertDialog(
             onDismissRequest = { raffleToDelete = null },
             title = { Text("Eliminar Rifa") },
@@ -105,13 +102,13 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
             Text(
                 text = raffle.title,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.ExtraBold,
+                fontWeight = FontWeight.Bold,
                 color = Color(0xFF1A1C1E)
             )
             
             Spacer(modifier = Modifier.height(12.dp))
             
-            // 1. Full Width Prize Box (Now First)
+            // 1. Full Width Prize & Winner Box (Centered)
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 color = Color(0xFFF3E5F5),
@@ -144,12 +141,32 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
                         color = Color(0xFF4A148C),
                         textAlign = TextAlign.Center
                     )
+
+                    // Show winner inside the same box if finished
+                    if (raffle.status == RaffleStatus.FINISHED && raffle.winningNumber != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        HorizontalDivider(color = Color(0xFF7B1FA2).copy(alpha = 0.2f), thickness = 1.dp)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(Icons.Default.EmojiEvents, null, tint = Color(0xFFF57F17), modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = "GANADOR: ${raffle.winningNumber.toString().padStart(raffle.digits, '0')}",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Black,
+                                color = Color(0xFFF57F17)
+                            )
+                        }
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 2. Financial Row (Below Prize)
+            // 2. Financial Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -174,7 +191,7 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
             
             Spacer(modifier = Modifier.height(12.dp))
             
-            // 3. Progress Section (Below Financials)
+            // 3. Progress Section
             raffle.stats?.let { stats ->
                 val occupied = stats.soldTickets + stats.reservedTickets
                 val progress = if (stats.totalTickets > 0) occupied.toFloat() / stats.totalTickets else 0f
@@ -227,16 +244,16 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
                 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Surface(
-                        color = if (raffle.status.name == "ACTIVE") Color(0xFFE3F2FD) else Color(0xFFF5F5F5),
+                        color = if (raffle.status == RaffleStatus.ACTIVE) Color(0xFFE3F2FD) else Color(0xFFF5F5F5),
                         shape = RoundedCornerShape(4.dp)
                     ) {
                         Text(
-                            text = if (raffle.status.name == "ACTIVE") "ACTIVA" else "CERRADA",
+                            text = if (raffle.status == RaffleStatus.ACTIVE) "ACTIVA" else "CERRADA",
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                             style = MaterialTheme.typography.labelSmall,
                             fontSize = 8.sp,
                             fontWeight = FontWeight.Black,
-                            color = if (raffle.status.name == "ACTIVE") Color(0xFF1976D2) else Color.Gray
+                            color = if (raffle.status == RaffleStatus.ACTIVE) Color(0xFF1976D2) else Color.Gray
                         )
                     }
                     
