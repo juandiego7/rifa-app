@@ -1,13 +1,18 @@
 package com.afelix.rifaapp.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.MonetizationOn
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,7 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.afelix.rifaapp.core.util.CurrencyFormatter
 import com.afelix.rifaapp.core.util.DateFormatter
 import com.afelix.rifaapp.domain.model.Raffle
@@ -68,8 +76,8 @@ fun RaffleListScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            contentPadding = PaddingValues(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(raffles) { raffle ->
                 RaffleItem(
@@ -88,78 +96,211 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
+            // Header: Solo Titulo
+            Text(
+                text = raffle.title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color(0xFF1A1C1E)
+            )
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Financial Row: Recaudado vs Valor Boleta
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                InfoBox(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Default.AccountBalanceWallet,
+                    label = "Recaudado",
+                    value = CurrencyFormatter.format(raffle.stats?.moneyCollected ?: 0.0),
+                    containerColor = Color(0xFFE8F5E9),
+                    contentColor = Color(0xFF2E7D32)
+                )
+                InfoBox(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Default.MonetizationOn,
+                    label = "Valor Boleta",
+                    value = CurrencyFormatter.format(raffle.ticketValue),
+                    containerColor = Color(0xFFFFF3E0),
+                    contentColor = Color(0xFFE65100)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Full Width Prize Box (Centered)
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = Color(0xFFF3E5F5),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(vertical = 10.dp, horizontal = 16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.Star, 
+                            contentDescription = null, 
+                            tint = Color(0xFF7B1FA2), 
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "PREMIO", 
+                            style = MaterialTheme.typography.labelSmall, 
+                            color = Color(0xFF7B1FA2), 
+                            fontWeight = FontWeight.Bold, 
+                            fontSize = 8.sp
+                        )
+                    }
+                    Text(
+                        text = if (raffle.prizeValue > 0) CurrencyFormatter.format(raffle.prizeValue) else raffle.description,
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color(0xFF4A148C),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Progress Section
+            raffle.stats?.let { stats ->
+                val occupied = stats.soldTickets + stats.reservedTickets
+                val progress = if (stats.totalTickets > 0) occupied.toFloat() / stats.totalTickets else 0f
+                val percentage = (progress * 100).toInt()
+                
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "$occupied de ${stats.totalTickets} boletas",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Text(
+                            text = "$percentage%",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Black,
+                            color = Color(0xFF4CAF50)
+                        )
+                    }
+                    LinearProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
+                        color = Color(0xFF4CAF50),
+                        trackColor = Color(0xFFF1F1F1),
+                        strokeCap = StrokeCap.Round,
+                        gapSize = 0.dp,
+                        drawStopIndicator = {}
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // Bottom Row: Date + Status + Delete
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Draw Date
                 Text(
-                    text = raffle.title,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.weight(1f)
+                    text = "Sorteo: ${DateFormatter.format(raffle.drawDate)}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.Gray,
+                    fontSize = 10.sp
                 )
+                
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Badge(
-                        containerColor = if (raffle.status.name == "ACTIVE") Color(0xFF81C784) else Color.Gray,
-                        contentColor = Color.Black
+                    // Status Badge (Active/Closed)
+                    Surface(
+                        color = if (raffle.status.name == "ACTIVE") Color(0xFFE8F5E9) else Color(0xFFF5F5F5),
+                        shape = RoundedCornerShape(4.dp)
                     ) {
-                        Text(text = raffle.status.name)
-                    }
-                    IconButton(onClick = onDelete) {
-                        Icon(
-                            Icons.Default.Delete,
-                            contentDescription = "Eliminar",
-                            tint = MaterialTheme.colorScheme.error
+                        Text(
+                            text = if (raffle.status.name == "ACTIVE") "ACTIVA" else "CERRADA",
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 8.sp,
+                            fontWeight = FontWeight.Black,
+                            color = if (raffle.status.name == "ACTIVE") Color(0xFF2E7D32) else Color.Gray
                         )
                     }
-                }
-            }
-            
-            // Si el premio es dinero, mostramos el formato de moneda. Si es texto, mostramos la descripción.
-            val prizeText = if (raffle.prizeValue > 0) {
-                "Premio: ${CurrencyFormatter.format(raffle.prizeValue)}"
-            } else {
-                raffle.description
-            }
-            
-            Text(text = prizeText, style = MaterialTheme.typography.bodyMedium, color = if(raffle.prizeValue > 0) Color(0xFF4CAF50) else MaterialTheme.colorScheme.onSurface)
-
-            Text(
-                text = "Juega el: ${DateFormatter.format(raffle.drawDate)}",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            raffle.stats?.let { stats ->
-                val occupiedTickets = stats.soldTickets + stats.reservedTickets
-                val progress = if (stats.totalTickets > 0) occupiedTickets.toFloat() / stats.totalTickets else 0f
-                
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(text = "Progreso (Ventas + Reservas)", style = MaterialTheme.typography.labelMedium)
-                        Text(text = "$occupiedTickets / ${stats.totalTickets}", style = MaterialTheme.typography.labelMedium)
+                    
+                    Spacer(modifier = Modifier.width(12.dp))
+                    
+                    // Delete Button
+                    TextButton(
+                        onClick = onDelete,
+                        modifier = Modifier.height(28.dp),
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                    ) {
+                        Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(14.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Eliminar", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
                     }
-                    LinearProgressIndicator(
-                        progress = { progress },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(10.dp)
-                            .clip(CircleShape),
-                        color = Color(0xFF4CAF50),
-                        trackColor = Color(0xFFC8E6C9),
-                        strokeCap = StrokeCap.Round
-                    )
-                    Text(
-                        text = "Valor: ${CurrencyFormatter.format(raffle.ticketValue)}",
-                        style = MaterialTheme.typography.labelLarge,
-                        modifier = Modifier.align(Alignment.End)
-                    )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun InfoBox(
+    modifier: Modifier,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    value: String,
+    containerColor: Color,
+    contentColor: Color
+) {
+    Surface(
+        modifier = modifier,
+        color = containerColor,
+        shape = RoundedCornerShape(10.dp)
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon, 
+                contentDescription = null, 
+                tint = contentColor, 
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Column {
+                Text(
+                    text = label, 
+                    style = MaterialTheme.typography.labelSmall, 
+                    fontSize = 8.sp,
+                    color = contentColor.copy(alpha = 0.7f)
+                )
+                Text(
+                    text = value, 
+                    style = MaterialTheme.typography.bodySmall, 
+                    fontWeight = FontWeight.Bold, 
+                    color = contentColor,
+                    maxLines = 1,
+                    fontSize = 11.sp
+                )
             }
         }
     }

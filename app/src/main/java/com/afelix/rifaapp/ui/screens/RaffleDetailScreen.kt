@@ -183,7 +183,8 @@ fun DashboardSection(raffle: Raffle, stats: RaffleDashboardStats) {
                 Text(
                     text = "Premio: ${if(raffle.prizeValue > 0) CurrencyFormatter.format(raffle.prizeValue) else raffle.description}",
                     style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF4CAF50)
                 )
             }
             
