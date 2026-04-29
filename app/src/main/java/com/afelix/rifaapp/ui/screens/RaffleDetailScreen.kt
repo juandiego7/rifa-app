@@ -14,14 +14,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -166,48 +165,94 @@ fun RaffleDetailScreen(
 fun DashboardSection(raffle: Raffle, stats: RaffleDashboardStats) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
-        tonalElevation = 1.dp
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 2.dp
     ) {
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            // Prize and Date Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFF7B1FA2), modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = if(raffle.prizeValue > 0) CurrencyFormatter.format(raffle.prizeValue) else raffle.description,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color(0xFF4A148C)
+                    )
+                }
                 Text(
                     text = "Sorteo: ${DateFormatter.format(raffle.drawDate)}",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-                Text(
-                    text = "Premio: ${if(raffle.prizeValue > 0) CurrencyFormatter.format(raffle.prizeValue) else raffle.description}",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF4CAF50)
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.Gray
                 )
             }
             
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(12.dp))
             
+            // Financial and Tickets Stats
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                CompactStat(label = "Vend.", value = stats.soldTickets.toString())
-                CompactStat(label = "Res.", value = stats.reservedTickets.toString())
-                CompactStat(label = "Faltan", value = stats.availableTickets.toString())
-                CompactStat(label = "Recaudado", value = CurrencyFormatter.format(stats.moneyCollected))
+                CompactInfoCard(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Default.CheckCircle,
+                    label = "Vendidas",
+                    value = stats.soldTickets.toString(),
+                    color = Color.Black,
+                    backgroundColor = Color(0xFF81C784)
+                )
+                CompactInfoCard(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Default.Schedule,
+                    label = "Reservadas",
+                    value = stats.reservedTickets.toString(),
+                    color = Color.Black,
+                    backgroundColor = Color(0xFFFFD54F)
+                )
+                CompactInfoCard(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Default.RadioButtonUnchecked,
+                    label = "Disponibles",
+                    value = stats.availableTickets.toString(),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    backgroundColor = MaterialTheme.colorScheme.surfaceVariant
+                )
             }
         }
     }
 }
 
 @Composable
-fun CompactStat(label: String, value: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = value, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold)
-        Text(text = label, style = MaterialTheme.typography.labelSmall, fontSize = 10.sp)
+fun CompactInfoCard(
+    modifier: Modifier,
+    icon: ImageVector,
+    label: String,
+    value: String,
+    color: Color,
+    backgroundColor: Color
+) {
+    Surface(
+        modifier = modifier,
+        color = backgroundColor,
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(14.dp))
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(text = label, style = MaterialTheme.typography.labelSmall, fontSize = 9.sp, color = color.copy(alpha = 0.8f))
+            }
+            Text(text = value, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = color)
+        }
     }
 }
 
@@ -310,7 +355,7 @@ fun TicketCircle(
             color = backgroundColor,
             contentColor = contentColor,
             tonalElevation = if (isSelected) 4.dp else 1.dp,
-            shadowElevation = if (isSelected) 6.dp else 2.dp,
+            shadowElevation = if (isSelected) { if (showBadge) 6.dp else 0.dp } else 2.dp,
         ) {
             Box(
                 modifier = Modifier

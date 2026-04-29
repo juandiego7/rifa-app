@@ -101,7 +101,7 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Header: Solo Titulo
+            // Header: Titulo
             Text(
                 text = raffle.title,
                 style = MaterialTheme.typography.titleMedium,
@@ -111,32 +111,7 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
             
             Spacer(modifier = Modifier.height(12.dp))
             
-            // Financial Row: Recaudado vs Valor Boleta
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                InfoBox(
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Default.AccountBalanceWallet,
-                    label = "Recaudado",
-                    value = CurrencyFormatter.format(raffle.stats?.moneyCollected ?: 0.0),
-                    containerColor = Color(0xFFE8F5E9),
-                    contentColor = Color(0xFF2E7D32)
-                )
-                InfoBox(
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Default.MonetizationOn,
-                    label = "Valor Boleta",
-                    value = CurrencyFormatter.format(raffle.ticketValue),
-                    containerColor = Color(0xFFFFF3E0),
-                    contentColor = Color(0xFFE65100)
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            // Full Width Prize Box (Centered)
+            // 1. Full Width Prize Box (Now First)
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 color = Color(0xFFF3E5F5),
@@ -173,8 +148,33 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
             }
 
             Spacer(modifier = Modifier.height(12.dp))
+
+            // 2. Financial Row (Below Prize)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                InfoBox(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Default.AccountBalanceWallet,
+                    label = "Recaudado",
+                    value = CurrencyFormatter.format(raffle.stats?.moneyCollected ?: 0.0),
+                    containerColor = Color(0xFFE8F5E9),
+                    contentColor = Color(0xFF2E7D32)
+                )
+                InfoBox(
+                    modifier = Modifier.weight(1f),
+                    icon = Icons.Default.MonetizationOn,
+                    label = "Valor Boleta",
+                    value = CurrencyFormatter.format(raffle.ticketValue),
+                    containerColor = Color(0xFFFFF3E0),
+                    contentColor = Color(0xFFE65100)
+                )
+            }
             
-            // Progress Section
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            // 3. Progress Section (Below Financials)
             raffle.stats?.let { stats ->
                 val occupied = stats.soldTickets + stats.reservedTickets
                 val progress = if (stats.totalTickets > 0) occupied.toFloat() / stats.totalTickets else 0f
@@ -218,7 +218,6 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Draw Date
                 Text(
                     text = "Sorteo: ${DateFormatter.format(raffle.drawDate)}",
                     style = MaterialTheme.typography.labelSmall,
@@ -227,9 +226,8 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
                 )
                 
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Status Badge (Active/Closed)
                     Surface(
-                        color = if (raffle.status.name == "ACTIVE") Color(0xFFE8F5E9) else Color(0xFFF5F5F5),
+                        color = if (raffle.status.name == "ACTIVE") Color(0xFFE3F2FD) else Color(0xFFF5F5F5),
                         shape = RoundedCornerShape(4.dp)
                     ) {
                         Text(
@@ -238,13 +236,12 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
                             style = MaterialTheme.typography.labelSmall,
                             fontSize = 8.sp,
                             fontWeight = FontWeight.Black,
-                            color = if (raffle.status.name == "ACTIVE") Color(0xFF2E7D32) else Color.Gray
+                            color = if (raffle.status.name == "ACTIVE") Color(0xFF1976D2) else Color.Gray
                         )
                     }
                     
                     Spacer(modifier = Modifier.width(12.dp))
                     
-                    // Delete Button
                     TextButton(
                         onClick = onDelete,
                         modifier = Modifier.height(28.dp),
