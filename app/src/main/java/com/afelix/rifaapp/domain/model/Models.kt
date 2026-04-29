@@ -10,6 +10,7 @@ data class Raffle(
     val prizeValue: Double,
     val drawDate: Long,
     val status: RaffleStatus = RaffleStatus.ACTIVE,
+    val winningNumber: Int? = null,
     val stats: RaffleDashboardStats? = null
 )
 

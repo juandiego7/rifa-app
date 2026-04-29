@@ -22,12 +22,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.afelix.rifaapp.core.util.CurrencyFormatter
 import com.afelix.rifaapp.core.util.DateFormatter
 import com.afelix.rifaapp.domain.model.Raffle
 import com.afelix.rifaapp.domain.model.RaffleDashboardStats
+import com.afelix.rifaapp.domain.model.RaffleStatus
 import com.afelix.rifaapp.domain.model.Ticket
 import com.afelix.rifaapp.domain.model.TicketStatus
 
@@ -38,7 +41,8 @@ fun RaffleDetailScreen(
     tickets: List<Ticket>,
     stats: RaffleDashboardStats,
     onBack: () -> Unit,
-    onTicketsAssign: (List<Ticket>) -> Unit
+    onTicketsAssign: (List<Ticket>) -> Unit,
+    onDrawWinner: () -> Unit
 ) {
     if (raffle == null) return
 
@@ -94,7 +98,7 @@ fun RaffleDetailScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            DashboardSection(raffle, stats)
+            DashboardSection(raffle, stats, onDrawWinner)
             
             if (isGridView) {
                 LazyVerticalGrid(
@@ -111,6 +115,7 @@ fun RaffleDetailScreen(
                             digits = raffle.digits,
                             isSelected = isSelected,
                             showBadge = true,
+                            showName = true, // Show name in grid
                             onClick = {
                                 if (isSelectionMode) {
                                     selectedIds = if (isSelected) selectedIds - ticket.id else selectedIds + ticket.id
@@ -162,7 +167,7 @@ fun RaffleDetailScreen(
 }
 
 @Composable
-fun DashboardSection(raffle: Raffle, stats: RaffleDashboardStats) {
+fun DashboardSection(raffle: Raffle, stats: RaffleDashboardStats, onDrawWinner: () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surface,
@@ -193,6 +198,29 @@ fun DashboardSection(raffle: Raffle, stats: RaffleDashboardStats) {
             }
             
             Spacer(modifier = Modifier.height(12.dp))
+
+            if (raffle.status == RaffleStatus.FINISHED && raffle.winningNumber != null) {
+                Surface(
+                    color = Color(0xFFFFEB3B),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(Icons.Default.EmojiEvents, null, tint = Color(0xFFF57F17))
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = "GANADOR: ${raffle.winningNumber.toString().padStart(raffle.digits, '0')}",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Black,
+                            color = Color(0xFFF57F17)
+                        )
+                    }
+                }
+            }
             
             // Financial and Tickets Stats
             Row(
@@ -220,9 +248,22 @@ fun DashboardSection(raffle: Raffle, stats: RaffleDashboardStats) {
                     icon = Icons.Default.RadioButtonUnchecked,
                     label = "Disponibles",
                     value = stats.availableTickets.toString(),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = Color.Black,
                     backgroundColor = MaterialTheme.colorScheme.surfaceVariant
                 )
+            }
+
+            if (raffle.status == RaffleStatus.ACTIVE) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Button(
+                    onClick = onDrawWinner,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Icon(Icons.Default.Casino, null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Realizar Sorteo")
+                }
             }
         }
     }
@@ -265,6 +306,8 @@ fun TicketListItem(
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
+    val formattedNumber = ticket.number.toString().padStart(digits, '0')
+    
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -279,11 +322,13 @@ fun TicketListItem(
             modifier = Modifier.padding(vertical = 6.dp, horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Visual circle without name in list mode
             TicketCircle(
                 ticket = ticket,
                 digits = digits,
                 isSelected = isSelected,
-                showBadge = false, // In list mode, we don't show the badge over the circle
+                showBadge = false,
+                showName = false, // Hide name in list mode
                 onClick = onClick,
                 onLongClick = onLongClick,
                 modifier = Modifier.size(40.dp)
@@ -292,13 +337,22 @@ fun TicketListItem(
             Spacer(modifier = Modifier.width(16.dp))
             
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = if (ticket.status == TicketStatus.AVAILABLE) "Disponible" else (ticket.customerName ?: "Sin nombre"),
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = if (ticket.status == TicketStatus.AVAILABLE) FontWeight.Normal else FontWeight.Bold,
-                    color = if (ticket.status == TicketStatus.AVAILABLE) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "#$formattedNumber",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = if (ticket.status == TicketStatus.AVAILABLE) "Disponible" else (ticket.customerName ?: "Sin nombre"),
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = if (ticket.status == TicketStatus.AVAILABLE) FontWeight.Normal else FontWeight.Bold,
+                        color = if (ticket.status == TicketStatus.AVAILABLE) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1
+                    )
+                }
                 
                 if (!ticket.customerPhone.isNullOrBlank()) {
                     Text(
@@ -330,6 +384,7 @@ fun TicketCircle(
     onLongClick: () -> Unit = {},
     isSelected: Boolean = false,
     showBadge: Boolean = true,
+    showName: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val backgroundColor = when {
@@ -366,12 +421,26 @@ fun TicketCircle(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = formattedNumber,
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = if (digits > 3) 10.sp else 14.sp
-                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = formattedNumber,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = if (digits > 3) 10.sp else 14.sp
+                    )
+                    if (showName && !ticket.customerName.isNullOrBlank()) {
+                        Text(
+                            text = ticket.customerName,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 7.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.padding(horizontal = 6.dp),
+                            textAlign = TextAlign.Center,
+                            lineHeight = 8.sp
+                        )
+                    }
+                }
             }
         }
         

@@ -61,7 +61,13 @@ fun TicketAssignmentDialog(
         ) 
     }
     
-    var status by remember { mutableStateOf(if (tickets.size == 1) firstTicket?.status ?: TicketStatus.RESERVED else TicketStatus.RESERVED) }
+    // Default to RESERVED if multiple tickets or if first ticket is available
+    val initialStatus = if (tickets.size == 1 && firstTicket?.status != TicketStatus.AVAILABLE) {
+        firstTicket?.status ?: TicketStatus.RESERVED
+    } else {
+        TicketStatus.RESERVED
+    }
+    var status by remember { mutableStateOf(initialStatus) }
 
     // Contact Picker Launcher
     val contactPickerLauncher = rememberLauncherForActivityResult(
@@ -132,7 +138,8 @@ fun TicketAssignmentDialog(
                         ticket = tickets.first().copy(status = status),
                         digits = digits,
                         onClick = {},
-                        modifier = Modifier.size(80.dp)
+                        modifier = Modifier.size(80.dp),
+                        showName = false // Don't show name inside circle in dialog
                     )
                 } else {
                     // Show a compact list of all selected numbers
@@ -147,6 +154,7 @@ fun TicketAssignmentDialog(
                                 digits = digits,
                                 onClick = {},
                                 showBadge = false,
+                                showName = false,
                                 modifier = Modifier.size(32.dp)
                             )
                         }

@@ -18,7 +18,8 @@ data class RaffleEntity(
     val ticketValue: Double,
     val prizeValue: Double,
     val drawDate: Long,
-    val status: String
+    val status: String,
+    val winningNumber: Int? = null
 )
 
 @Entity(
@@ -50,7 +51,8 @@ fun RaffleEntity.toDomain() = Raffle(
     ticketValue = ticketValue,
     prizeValue = prizeValue,
     drawDate = drawDate,
-    status = RaffleStatus.valueOf(status)
+    status = RaffleStatus.valueOf(status),
+    winningNumber = winningNumber
 )
 
 fun Raffle.toEntity() = RaffleEntity(
@@ -62,7 +64,8 @@ fun Raffle.toEntity() = RaffleEntity(
     ticketValue = ticketValue,
     prizeValue = prizeValue,
     drawDate = drawDate,
-    status = status.name
+    status = status.name,
+    winningNumber = winningNumber
 )
 
 fun TicketEntity.toDomain() = Ticket(

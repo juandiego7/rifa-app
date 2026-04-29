@@ -48,11 +48,18 @@ fun DigitalTicket(
             
             Spacer(modifier = Modifier.height(8.dp))
             
+            val prizeDisplay = if (raffle.prizeValue > 0) {
+                CurrencyFormatter.format(raffle.prizeValue)
+            } else {
+                raffle.description
+            }
+
             Text(
-                text = raffle.title,
+                text = prizeDisplay,
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                color = Color(0xFF4CAF50)
             )
             
             Spacer(modifier = Modifier.height(16.dp))
@@ -102,17 +109,11 @@ fun DigitalTicket(
             Spacer(modifier = Modifier.height(16.dp))
             
             Column(modifier = Modifier.fillMaxWidth()) {
-                Text("PREMIO", style = MaterialTheme.typography.labelSmall)
-                val prizeDisplay = if (raffle.prizeValue > 0) {
-                    CurrencyFormatter.format(raffle.prizeValue)
-                } else {
-                    raffle.description
-                }
+                Text("MOTIVO / DESCRIPCIÓN", style = MaterialTheme.typography.labelSmall)
                 Text(
-                    text = prizeDisplay,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF4CAF50)
+                    text = raffle.title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold
                 )
             }
             

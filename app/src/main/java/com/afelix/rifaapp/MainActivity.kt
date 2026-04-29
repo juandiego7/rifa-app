@@ -72,6 +72,7 @@ class MainActivity : ComponentActivity() {
                         val raffle by viewModel.selectedRaffle.collectAsState()
                         val tickets by viewModel.tickets.collectAsState()
                         val stats by viewModel.stats.collectAsState()
+                        var showDrawWinner by remember { mutableStateOf(false) }
                         
                         RaffleDetailScreen(
                             raffle = raffle,
@@ -80,8 +81,22 @@ class MainActivity : ComponentActivity() {
                             onBack = { navController.popBackStack() },
                             onTicketsAssign = { selectedTickets ->
                                 ticketsToAssign = selectedTickets
+                            },
+                            onDrawWinner = {
+                                showDrawWinner = true
                             }
                         )
+
+                        if (showDrawWinner && raffle != null) {
+                            DrawWinnerDialog(
+                                raffle = raffle!!,
+                                onDismiss = { showDrawWinner = false },
+                                onConfirm = { winnerNumber ->
+                                    viewModel.setWinningNumber(raffle!!, winnerNumber)
+                                    showDrawWinner = false
+                                }
+                            )
+                        }
                         
                         ticketsToAssign?.let { selectedTickets ->
                             TicketAssignmentDialog(

@@ -77,4 +77,15 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
             repository.deleteRaffle(raffle)
         }
     }
+
+    fun setWinningNumber(raffle: Raffle, number: Int) {
+        viewModelScope.launch {
+            val updatedRaffle = raffle.copy(
+                winningNumber = number,
+                status = com.afelix.rifaapp.domain.model.RaffleStatus.FINISHED
+            )
+            repository.updateRaffle(updatedRaffle)
+            _selectedRaffle.value = updatedRaffle
+        }
+    }
 }
