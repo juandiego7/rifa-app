@@ -173,54 +173,70 @@ fun DashboardSection(raffle: Raffle, stats: RaffleDashboardStats, onDrawWinner: 
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 2.dp
     ) {
-        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
-            // Prize and Date Row
-            Row(
+        Column(modifier = Modifier.padding(12.dp)) {
+            // Prize and Winner Consolidate Box (Purple Style)
+            Surface(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                color = Color(0xFFF3E5F5),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFF7B1FA2), modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFF7B1FA2), modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "PREMIO", 
+                                style = MaterialTheme.typography.labelSmall, 
+                                color = Color(0xFF7B1FA2), 
+                                fontWeight = FontWeight.Bold, 
+                                fontSize = 8.sp
+                            )
+                        }
+                        Text(
+                            text = "Sorteo: ${DateFormatter.format(raffle.drawDate)}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.Gray
+                        )
+                    }
+                    
                     Text(
                         text = if(raffle.prizeValue > 0) CurrencyFormatter.format(raffle.prizeValue) else raffle.description,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.ExtraBold,
-                        color = Color(0xFF4A148C)
+                        color = Color(0xFF4A148C),
+                        textAlign = TextAlign.Center
                     )
-                }
-                Text(
-                    text = "Sorteo: ${DateFormatter.format(raffle.drawDate)}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(8.dp))
 
-            if (raffle.status == RaffleStatus.FINISHED && raffle.winningNumber != null) {
-                Surface(
-                    color = Color(0xFFFFEB3B),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Icon(Icons.Default.EmojiEvents, null, tint = Color(0xFFF57F17), modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            text = "GANADOR: ${raffle.winningNumber.toString().padStart(raffle.digits, '0')}",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
-                            color = Color(0xFFF57F17)
-                        )
+                    if (raffle.status == RaffleStatus.FINISHED && raffle.winningNumber != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        HorizontalDivider(color = Color(0xFF7B1FA2).copy(alpha = 0.2f), thickness = 1.dp)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(Icons.Default.EmojiEvents, null, tint = Color(0xFFF57F17), modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = "GANADOR: ${raffle.winningNumber.toString().padStart(raffle.digits, '0')}",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Black,
+                                color = Color(0xFFF57F17)
+                            )
+                        }
                     }
                 }
             }
+            
+            Spacer(modifier = Modifier.height(12.dp))
             
             // Financial and Tickets Stats
             Row(
@@ -291,7 +307,7 @@ fun CompactInfoCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(12.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = label, style = MaterialTheme.typography.labelSmall, fontSize = 8.sp, color = color.copy(alpha = 0.8f))
+                Text(text = label, style = MaterialTheme.typography.labelSmall, fontSize = 9.sp, color = color.copy(alpha = 0.8f))
             }
             Text(text = value, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = color, fontSize = 10.sp)
         }
@@ -307,6 +323,8 @@ fun TicketListItem(
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
+    val formattedNumber = ticket.number.toString().padStart(digits, '0')
+    
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -321,12 +339,13 @@ fun TicketListItem(
             modifier = Modifier.padding(vertical = 2.dp, horizontal = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Visual circle without name in list mode
             TicketCircle(
                 ticket = ticket,
                 digits = digits,
                 isSelected = isSelected,
                 showBadge = false,
-                showName = false,
+                showName = false, // Hide name in list mode
                 onClick = onClick,
                 onLongClick = onLongClick,
                 modifier = Modifier.size(32.dp)
