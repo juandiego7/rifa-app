@@ -40,14 +40,19 @@ fun TicketAssignmentDialog(
     val context = LocalContext.current
     val firstTicket = tickets.firstOrNull()
     
-    var name by remember { mutableStateOf(if (tickets.size == 1) firstTicket?.customerName ?: "" else "") }
+    // Detect if all tickets have the same owner to pre-fill
+    val allSameName = tickets.map { it.customerName }.distinct().let { it.size == 1 && it.first() != null }
+    val allSamePhone = tickets.map { it.customerPhone }.distinct().let { it.size == 1 && it.first() != null }
+    val sameOwner = allSameName && allSamePhone
+
+    var name by remember { mutableStateOf(if (sameOwner || tickets.size == 1) firstTicket?.customerName ?: "" else "") }
     
     // Use dynamic CountryService instead of hardcoded list
     val countries = CountryService.allCountries
     val defaultCountry = countries.find { it.isoCode == "CO" } ?: countries.first()
     
     // Parse existing phone if any (format expected: +CC Number)
-    val existingPhone = if (tickets.size == 1) firstTicket?.customerPhone ?: "" else ""
+    val existingPhone = if (sameOwner || tickets.size == 1) firstTicket?.customerPhone ?: "" else ""
     val detectedCountry = countries.find { existingPhone.startsWith(it.dialCode) } ?: defaultCountry
     
     var selectedCountry by remember { mutableStateOf(detectedCountry) }
@@ -61,9 +66,12 @@ fun TicketAssignmentDialog(
         ) 
     }
     
-    // Default to RESERVED if multiple tickets or if first ticket is available
-    val initialStatus = if (tickets.size == 1 && firstTicket?.status != TicketStatus.AVAILABLE) {
+    // Default to RESERVED if multiple tickets (different owners) or if first ticket is available
+    val allSameStatus = tickets.map { it.status }.distinct().size == 1
+    val initialStatus = if ((sameOwner || tickets.size == 1) && firstTicket?.status != TicketStatus.AVAILABLE) {
         firstTicket?.status ?: TicketStatus.RESERVED
+    } else if (allSameStatus) {
+        tickets.first().status
     } else {
         TicketStatus.RESERVED
     }
