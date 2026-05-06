@@ -82,6 +82,9 @@ class MainActivity : ComponentActivity() {
                             onTicketsAssign = { selectedTickets ->
                                 ticketsToAssign = selectedTickets
                             },
+                            onTicketsShare = { selectedTickets ->
+                                ticketsToPreview = selectedTickets
+                            },
                             onDrawWinner = {
                                 showDrawWinner = true
                             }

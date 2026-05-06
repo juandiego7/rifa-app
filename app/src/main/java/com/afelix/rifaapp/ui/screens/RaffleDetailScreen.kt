@@ -42,6 +42,7 @@ fun RaffleDetailScreen(
     stats: RaffleDashboardStats,
     onBack: () -> Unit,
     onTicketsAssign: (List<Ticket>) -> Unit,
+    onTicketsShare: (List<Ticket>) -> Unit,
     onDrawWinner: () -> Unit
 ) {
     if (raffle == null) return
@@ -49,6 +50,12 @@ fun RaffleDetailScreen(
     var selectedIds by remember { mutableStateOf(emptySet<Long>()) }
     var isGridView by remember { mutableStateOf(true) }
     val isSelectionMode = selectedIds.isNotEmpty()
+    
+    val selectedTickets = tickets.filter { it.id in selectedIds }
+    val canShareSelection = selectedTickets.isNotEmpty() && 
+            selectedTickets.all { it.status != TicketStatus.AVAILABLE } &&
+            selectedTickets.map { it.customerName }.distinct().size == 1 &&
+            selectedTickets.map { it.customerPhone }.distinct().size == 1
 
     Scaffold(
         topBar = {
@@ -61,15 +68,24 @@ fun RaffleDetailScreen(
                         }
                     },
                     actions = {
+                        if (canShareSelection) {
+                            IconButton(
+                                onClick = {
+                                    onTicketsShare(selectedTickets)
+                                    selectedIds = emptySet()
+                                }
+                            ) {
+                                Icon(Icons.Default.Share, contentDescription = "Compartir Ticket")
+                            }
+                        }
                         Button(
                             onClick = {
-                                val selectedTickets = tickets.filter { it.id in selectedIds }
                                 onTicketsAssign(selectedTickets)
                                 selectedIds = emptySet()
                             },
                             modifier = Modifier.padding(end = 8.dp)
                         ) {
-                            Text("Asignar")
+                            Text(if (selectedTickets.all { it.status == TicketStatus.AVAILABLE }) "Asignar" else "Editar")
                         }
                     }
                 )
