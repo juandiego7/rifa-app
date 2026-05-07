@@ -1,6 +1,7 @@
 package com.afelix.rifaapp.ui.screens
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.provider.ContactsContract
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -12,6 +13,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ContactPage
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -24,16 +26,19 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.afelix.rifaapp.core.util.CurrencyFormatter
+import com.afelix.rifaapp.core.util.DateFormatter
 import com.afelix.rifaapp.core.util.Country
 import com.afelix.rifaapp.core.util.CountryService
+import com.afelix.rifaapp.domain.model.Raffle
 import com.afelix.rifaapp.domain.model.Ticket
 import com.afelix.rifaapp.domain.model.TicketStatus
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun TicketAssignmentDialog(
+    raffle: Raffle,
     tickets: List<Ticket>,
-    digits: Int,
     onDismiss: () -> Unit,
     onConfirm: (List<Ticket>) -> Unit
 ) {
@@ -122,12 +127,37 @@ fun TicketAssignmentDialog(
         if (isGranted) contactPickerLauncher.launch(null)
     }
 
+    val shareTicket = {
+        val numbers = tickets.joinToString(", ") { it.number.toString().padStart(raffle.digits, '0') }
+        val prize = if (raffle.prizeValue > 0) CurrencyFormatter.format(raffle.prizeValue) else raffle.description
+        val total = CurrencyFormatter.format(raffle.ticketValue * tickets.size)
+        val date = DateFormatter.format(raffle.drawDate)
+
+        val message = """
+            🎟️ *TICKET DE RIFA* 🎟️
+            
+            *Premio:* $prize
+            *Cliente:* $name
+            *Números:* $numbers
+            *Fecha Sorteo:* $date
+            *Total a pagar:* $total
+            
+            ¡Gracias por participar y mucha suerte! 🍀
+        """.trimIndent()
+
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, message)
+        }
+        context.startActivity(Intent.createChooser(intent, "Compartir Ticket"))
+    }
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
                 text = if (tickets.size == 1) {
-                    "Boleta #${tickets.first().number.toString().padStart(digits, '0')}"
+                    "Boleta #${tickets.first().number.toString().padStart(raffle.digits, '0')}"
                 } else {
                     "Asignar ${tickets.size} Boletas"
                 },
@@ -144,13 +174,12 @@ fun TicketAssignmentDialog(
                 if (tickets.size == 1) {
                     TicketCircle(
                         ticket = tickets.first().copy(status = status),
-                        digits = digits,
+                        digits = raffle.digits,
                         onClick = {},
                         modifier = Modifier.size(80.dp),
-                        showName = false // Don't show name inside circle in dialog
+                        showName = false
                     )
                 } else {
-                    // Show a compact list of all selected numbers
                     FlowRow(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center,
@@ -159,7 +188,7 @@ fun TicketAssignmentDialog(
                         tickets.forEach { ticket ->
                             TicketCircle(
                                 ticket = ticket.copy(status = status),
-                                digits = digits,
+                                digits = raffle.digits,
                                 onClick = {},
                                 showBadge = false,
                                 showName = false,
@@ -196,7 +225,6 @@ fun TicketAssignmentDialog(
                         var expanded by remember { mutableStateOf(false) }
                         
                         Box(modifier = Modifier.weight(0.4f)) {
-                            // Custom compact selector to avoid OutlinedTextField padding
                             Surface(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -302,7 +330,16 @@ fun TicketAssignmentDialog(
             }
         },
         confirmButton = {
-            Row {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (status != TicketStatus.AVAILABLE) {
+                    IconButton(
+                        onClick = shareTicket,
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        Icon(Icons.Default.Share, contentDescription = "Compartir", tint = MaterialTheme.colorScheme.primary)
+                    }
+                }
+                
                 if (tickets.all { it.status != TicketStatus.AVAILABLE }) {
                     TextButton(
                         onClick = {
@@ -310,11 +347,11 @@ fun TicketAssignmentDialog(
                         },
                         colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                     ) {
-                        Text("Liberar Todas")
+                        Text("Liberar")
                     }
                 }
                 TextButton(
-                    enabled = name.isNotBlank() && phoneNumber.isNotBlank() || status == TicketStatus.AVAILABLE,
+                    enabled = (name.isNotBlank() && phoneNumber.isNotBlank()) || status == TicketStatus.AVAILABLE,
                     onClick = {
                         val fullPhone = "${selectedCountry.dialCode} ${phoneNumber.trim()}"
                         onConfirm(tickets.map {

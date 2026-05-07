@@ -1,7 +1,6 @@
 package com.afelix.rifaapp.ui.screens
 
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Share
@@ -17,7 +16,6 @@ import com.afelix.rifaapp.core.util.DateFormatter
 import com.afelix.rifaapp.domain.model.Raffle
 import com.afelix.rifaapp.domain.model.Ticket
 import com.afelix.rifaapp.ui.components.DigitalTicket
-import java.net.URLEncoder
 
 @Composable
 fun TicketPreviewDialog(
@@ -30,7 +28,6 @@ fun TicketPreviewDialog(
     val shareTicket = {
         val firstTicket = tickets.firstOrNull()
         val customerName = firstTicket?.customerName ?: "N/A"
-        val customerPhone = firstTicket?.customerPhone ?: ""
         val numbers = tickets.joinToString(", ") { it.number.toString().padStart(raffle.digits, '0') }
         val prize = if (raffle.prizeValue > 0) CurrencyFormatter.format(raffle.prizeValue) else raffle.description
         val total = CurrencyFormatter.format(raffle.ticketValue * tickets.size)
@@ -39,31 +36,20 @@ fun TicketPreviewDialog(
         val message = """
             🎟️ *TICKET DE RIFA* 🎟️
             
-            *Rifa:* ${raffle.title}
+            *Premio:* $prize
             *Cliente:* $customerName
             *Números:* $numbers
             *Fecha Sorteo:* $date
-            *Premio:* $prize
             *Total a pagar:* $total
             
             ¡Gracias por participar y mucha suerte! 🍀
         """.trimIndent()
 
-        try {
-            if (customerPhone.isNotBlank()) {
-                val url = "https://api.whatsapp.com/send?phone=$customerPhone&text=${URLEncoder.encode(message, "UTF-8")}"
-                val intent = Intent(Intent.ACTION_VIEW).apply { data = Uri.parse(url) }
-                context.startActivity(intent)
-            } else {
-                val intent = Intent(Intent.ACTION_SEND).apply {
-                    type = "text/plain"
-                    putExtra(Intent.EXTRA_TEXT, message)
-                }
-                context.startActivity(Intent.createChooser(intent, "Compartir Ticket"))
-            }
-        } catch (e: Exception) {
-            // Manejar caso donde no haya app de WhatsApp o error de envío
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, message)
         }
+        context.startActivity(Intent.createChooser(intent, "Compartir Ticket"))
     }
 
     Dialog(
@@ -92,12 +78,11 @@ fun TicketPreviewDialog(
                     
                     Button(
                         onClick = shareTicket,
-                        modifier = Modifier.weight(1f),
-                        colors = ButtonDefaults.buttonColors(containerColor = androidx.compose.ui.graphics.Color(0xFF25D366)) // Color WhatsApp
+                        modifier = Modifier.weight(1f)
                     ) {
                         Icon(Icons.Default.Share, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("WhatsApp")
+                        Text("Compartir")
                     }
                 }
             }
