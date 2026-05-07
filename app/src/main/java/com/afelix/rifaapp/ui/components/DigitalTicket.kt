@@ -109,9 +109,9 @@ fun DigitalTicket(
             Spacer(modifier = Modifier.height(16.dp))
             
             Column(modifier = Modifier.fillMaxWidth()) {
-                Text("MOTIVO / DESCRIPCIÓN", style = MaterialTheme.typography.labelSmall)
+                Text("VALOR POR BOLETA", style = MaterialTheme.typography.labelSmall)
                 Text(
-                    text = raffle.title,
+                    text = CurrencyFormatter.format(raffle.ticketValue),
                     style = MaterialTheme.typography.bodyLarge,
                     fontWeight = FontWeight.Bold
                 )
