@@ -57,14 +57,7 @@ fun WinnerCard(
             
             Spacer(modifier = Modifier.height(24.dp))
             
-            Text(
-                text = raffle.title,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
-            
-            Spacer(modifier = Modifier.height(8.dp))
+            /* Title removed as per user request */
             
             val prizeDisplay = if (raffle.prizeValue > 0) CurrencyFormatter.format(raffle.prizeValue) else raffle.description
             Text(
