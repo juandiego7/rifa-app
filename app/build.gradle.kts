@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.libphonenumber)
+    implementation(libs.play.services.ads)
     
     // Room
     implementation(libs.androidx.room.runtime)
