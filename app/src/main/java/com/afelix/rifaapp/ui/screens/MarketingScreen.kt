@@ -123,6 +123,7 @@ fun MarketingScreen(
                     .padding(16.dp)
                     .background(Color.LightGray.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
             ) {
+                // We keep it inside a box with width but allow it to grow for capture
                 ViewCaptureWrapper<View>(onViewReady = { captureView = it }) {
                     // This is exactly what will be shared
                     Column(

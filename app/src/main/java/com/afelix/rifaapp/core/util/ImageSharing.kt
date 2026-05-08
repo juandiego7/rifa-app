@@ -39,17 +39,20 @@ object ImageSharing {
     }
 
     fun captureView(view: View): Bitmap? {
-        if (view.width <= 0 || view.height <= 0) {
-            // View not measured yet, try to measure it
-            val specWidth = View.MeasureSpec.makeMeasureSpec(view.width, View.MeasureSpec.EXACTLY)
-            val specHeight = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
-            view.measure(specWidth, specHeight)
-            view.layout(0, 0, view.measuredWidth, view.measuredHeight)
-        }
+        // Ensure the view is measured and laid out at its preferred size
+        val widthSpec = View.MeasureSpec.makeMeasureSpec(1080, View.MeasureSpec.AT_MOST)
+        val heightSpec = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
         
-        if (view.width <= 0 || view.height <= 0) return null
+        view.measure(widthSpec, heightSpec)
+        
+        val width = view.measuredWidth
+        val height = view.measuredHeight
+        
+        if (width <= 0 || height <= 0) return null
+        
+        view.layout(0, 0, width, height)
 
-        val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+        val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         canvas.drawColor(Color.WHITE) // Ensure white background
         view.draw(canvas)
@@ -83,7 +86,7 @@ fun <T : View> ViewCaptureWrapper(
             frameLayout
         },
         update = {
-            // Ensure onViewReady is called if not already
+            // Re-assign onViewReady just in case
             @Suppress("UNCHECKED_CAST")
             onViewReady(it as T)
         }

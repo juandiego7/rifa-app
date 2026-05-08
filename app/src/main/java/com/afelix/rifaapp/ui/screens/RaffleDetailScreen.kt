@@ -195,8 +195,9 @@ fun RaffleDetailScreen(
                 }
             }
 
-            // Hidden capture boxes moved OUT of the Column flow
-            Box(modifier = Modifier.size(0.dp).offset(x = 2000.dp)) {
+            // Hidden capture box for winner card
+            // We give it a fixed width and keep it off-screen so it can be measured properly
+            Box(modifier = Modifier.width(360.dp).wrapContentHeight().offset(x = 2000.dp)) {
                 if (raffle.status == RaffleStatus.FINISHED) {
                     ViewCaptureWrapper<View>(onViewReady = { winnerCaptureView = it }) {
                         val winnerTicket = tickets.find { it.number == raffle.winningNumber }
