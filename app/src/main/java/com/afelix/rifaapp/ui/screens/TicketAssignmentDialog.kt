@@ -3,6 +3,7 @@ package com.afelix.rifaapp.ui.screens
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.provider.ContactsContract
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -33,6 +34,7 @@ import com.afelix.rifaapp.core.util.CountryService
 import com.afelix.rifaapp.domain.model.Raffle
 import com.afelix.rifaapp.domain.model.Ticket
 import com.afelix.rifaapp.domain.model.TicketStatus
+import java.net.URLEncoder
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -127,13 +129,13 @@ fun TicketAssignmentDialog(
         if (isGranted) contactPickerLauncher.launch(null)
     }
 
-    val shareTicket = {
+    val createMessage = {
         val numbers = tickets.joinToString(", ") { it.number.toString().padStart(raffle.digits, '0') }
         val prize = if (raffle.prizeValue > 0) CurrencyFormatter.format(raffle.prizeValue) else raffle.description
         val total = CurrencyFormatter.format(raffle.ticketValue * tickets.size)
         val date = DateFormatter.format(raffle.drawDate)
 
-        val message = """
+        """
             🎟️ *TICKET DE RIFA* 🎟️
             
             *Premio:* $prize
@@ -144,12 +146,23 @@ fun TicketAssignmentDialog(
             
             ¡Gracias por participar y mucha suerte! 🍀
         """.trimIndent()
+    }
 
+    val shareUniversal = {
+        val message = createMessage()
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_TEXT, message)
         }
         context.startActivity(Intent.createChooser(intent, "Compartir Ticket"))
+    }
+
+    val shareWhatsApp = {
+        val message = createMessage()
+        val fullPhone = "${selectedCountry.dialCode}${phoneNumber.trim()}".filter { it.isDigit() }
+        val url = "https://api.whatsapp.com/send?phone=$fullPhone&text=${URLEncoder.encode(message, "UTF-8")}"
+        val intent = Intent(Intent.ACTION_VIEW).apply { data = Uri.parse(url) }
+        context.startActivity(intent)
     }
 
     AlertDialog(
@@ -334,10 +347,16 @@ fun TicketAssignmentDialog(
                 // Solo mostramos compartir si el estado no es Disponible y hay datos de contacto
                 if (status != TicketStatus.AVAILABLE && name.isNotBlank() && phoneNumber.isNotBlank()) {
                     IconButton(
-                        onClick = shareTicket,
+                        onClick = shareWhatsApp,
+                        modifier = Modifier.padding(end = 4.dp)
+                    ) {
+                        Icon(Icons.Default.Share, contentDescription = "Directo a WhatsApp", tint = Color(0xFF25D366))
+                    }
+                    IconButton(
+                        onClick = shareUniversal,
                         modifier = Modifier.padding(end = 8.dp)
                     ) {
-                        Icon(Icons.Default.Share, contentDescription = "Compartir", tint = MaterialTheme.colorScheme.primary)
+                        Icon(Icons.Default.Share, contentDescription = "Compartir en cualquier app", tint = MaterialTheme.colorScheme.primary)
                     }
                 }
                 
