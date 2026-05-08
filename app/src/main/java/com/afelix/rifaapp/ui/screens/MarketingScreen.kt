@@ -130,7 +130,7 @@ fun MarketingScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(Color.White)
-                            .padding(8.dp), // Minimal padding to use full width
+                            .padding(horizontal = 2.dp, vertical = 12.dp), // Near-zero horizontal padding
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         if (showTitle) {
@@ -167,17 +167,17 @@ fun MarketingScreen(
 
                         Spacer(Modifier.height(16.dp))
 
-                        // High density grid for social media (15 columns)
+                        // Maximum density grid using full width (12 columns for better balance with larger circles)
                         FlowRow(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.Center,
                             verticalArrangement = Arrangement.spacedBy(1.dp),
-                            maxItemsInEachRow = 15
+                            maxItemsInEachRow = 12
                         ) {
                             filteredTickets.forEach { ticket ->
                                 Box(
                                     modifier = Modifier
-                                        .size(22.dp)
+                                        .size(28.dp) // Larger circles as requested
                                         .padding(1.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -194,7 +194,7 @@ fun MarketingScreen(
                                         Box(contentAlignment = Alignment.Center) {
                                             Text(
                                                 text = ticket.number.toString().padStart(raffle.digits, '0'),
-                                                fontSize = if (raffle.digits > 3) 6.sp else 8.sp,
+                                                fontSize = if (raffle.digits > 3) 8.sp else 11.sp, // Larger font size
                                                 fontWeight = FontWeight.Bold,
                                                 color = if (ticket.status == TicketStatus.AVAILABLE) Color.Gray else Color.Black
                                             )
