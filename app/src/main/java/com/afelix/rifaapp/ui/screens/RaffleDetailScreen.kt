@@ -115,6 +115,11 @@ fun RaffleDetailScreen(
                         }
                     },
                     actions = {
+                        if (raffle.status == RaffleStatus.ACTIVE) {
+                            IconButton(onClick = onDrawWinner) {
+                                Icon(Icons.Default.Casino, contentDescription = "Realizar Sorteo", tint = MaterialTheme.colorScheme.primary)
+                            }
+                        }
                         IconButton(onClick = onMarketingClick) {
                             Icon(Icons.Default.Image, contentDescription = "Compartir Publicidad")
                         }
@@ -129,76 +134,73 @@ fun RaffleDetailScreen(
             }
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            DashboardSection(
-                raffle = raffle, 
-                stats = stats, 
-                onDrawWinner = onDrawWinner,
-                onShareWinner = { shareWinnerImage() }
-            )
-            
-            // Hidden box for winner image capture
-            if (raffle.status == RaffleStatus.FINISHED) {
-                Box(modifier = Modifier.width(360.dp).wrapContentHeight().offset(x = 2000.dp)) {
-                    ViewCaptureWrapper<View>(onViewReady = { winnerCaptureView = it }) {
-                        val winnerTicket = tickets.find { it.number == raffle.winningNumber }
-                        WinnerCard(raffle = raffle, winnerTicket = winnerTicket)
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                DashboardSection(
+                    raffle = raffle, 
+                    stats = stats, 
+                    onShareWinner = { shareWinnerImage() }
+                )
+                
+                LazyVerticalGrid(
+                    columns = if (isGridView) GridCells.Adaptive(minSize = 44.dp) else GridCells.Fixed(2),
+                    contentPadding = PaddingValues(if (isGridView) 4.dp else 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(if (isGridView) 2.dp else 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(if (isGridView) 2.dp else 4.dp),
+                    modifier = Modifier.weight(1f)
+                ) {
+                    items(tickets) { ticket ->
+                        val isSelected = ticket.id in selectedIds
+                        if (isGridView) {
+                            TicketCircle(
+                                ticket = ticket,
+                                digits = raffle.digits,
+                                isSelected = isSelected,
+                                showBadge = true,
+                                showName = true,
+                                onClick = {
+                                    if (isSelectionMode) {
+                                        selectedIds = if (isSelected) selectedIds - ticket.id else selectedIds + ticket.id
+                                    } else {
+                                        onTicketsAssign(listOf(ticket))
+                                    }
+                                },
+                                onLongClick = {
+                                    if (!isSelectionMode) {
+                                        selectedIds = setOf(ticket.id)
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth().aspectRatio(1f)
+                            )
+                        } else {
+                            TicketListItem(
+                                ticket = ticket,
+                                digits = raffle.digits,
+                                isSelected = isSelected,
+                                onClick = {
+                                    if (isSelectionMode) {
+                                        selectedIds = if (isSelected) selectedIds - ticket.id else selectedIds + ticket.id
+                                    } else {
+                                        onTicketsAssign(listOf(ticket))
+                                    }
+                                },
+                                onLongClick = {
+                                    if (!isSelectionMode) {
+                                        selectedIds = setOf(ticket.id)
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
             }
-            
-            LazyVerticalGrid(
-                columns = if (isGridView) GridCells.Adaptive(minSize = 44.dp) else GridCells.Fixed(2),
-                contentPadding = PaddingValues(if (isGridView) 4.dp else 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(if (isGridView) 2.dp else 4.dp),
-                verticalArrangement = Arrangement.spacedBy(if (isGridView) 2.dp else 4.dp),
-                modifier = Modifier.weight(1f)
-            ) {
-                items(tickets) { ticket ->
-                    val isSelected = ticket.id in selectedIds
-                    if (isGridView) {
-                        TicketCircle(
-                            ticket = ticket,
-                            digits = raffle.digits,
-                            isSelected = isSelected,
-                            showBadge = true,
-                            showName = true,
-                            onClick = {
-                                if (isSelectionMode) {
-                                    selectedIds = if (isSelected) selectedIds - ticket.id else selectedIds + ticket.id
-                                } else {
-                                    onTicketsAssign(listOf(ticket))
-                                }
-                            },
-                            onLongClick = {
-                                if (!isSelectionMode) {
-                                    selectedIds = setOf(ticket.id)
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth().aspectRatio(1f)
-                        )
-                    } else {
-                        TicketListItem(
-                            ticket = ticket,
-                            digits = raffle.digits,
-                            isSelected = isSelected,
-                            onClick = {
-                                if (isSelectionMode) {
-                                    selectedIds = if (isSelected) selectedIds - ticket.id else selectedIds + ticket.id
-                                } else {
-                                    onTicketsAssign(listOf(ticket))
-                                }
-                            },
-                            onLongClick = {
-                                if (!isSelectionMode) {
-                                    selectedIds = setOf(ticket.id)
-                                }
-                            }
-                        )
+
+            // Hidden capture boxes moved OUT of the Column flow
+            Box(modifier = Modifier.size(0.dp).offset(x = 2000.dp)) {
+                if (raffle.status == RaffleStatus.FINISHED) {
+                    ViewCaptureWrapper<View>(onViewReady = { winnerCaptureView = it }) {
+                        val winnerTicket = tickets.find { it.number == raffle.winningNumber }
+                        WinnerCard(raffle = raffle, winnerTicket = winnerTicket)
                     }
                 }
             }
@@ -210,7 +212,6 @@ fun RaffleDetailScreen(
 fun DashboardSection(
     raffle: Raffle, 
     stats: RaffleDashboardStats, 
-    onDrawWinner: () -> Unit,
     onShareWinner: () -> Unit
 ) {
     Surface(
@@ -325,20 +326,6 @@ fun DashboardSection(
                     backgroundColor = MaterialTheme.colorScheme.surfaceVariant
                 )
             }
-
-            if (raffle.status == RaffleStatus.ACTIVE) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(
-                    onClick = onDrawWinner,
-                    modifier = Modifier.fillMaxWidth().height(36.dp),
-                    contentPadding = PaddingValues(0.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                ) {
-                    Icon(Icons.Default.Casino, null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(8.dp))
-                    Text("Realizar Sorteo", style = MaterialTheme.typography.labelLarge)
-                }
-            }
         }
     }
 }
@@ -380,6 +367,8 @@ fun TicketListItem(
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
+    val formattedNumber = ticket.number.toString().padStart(digits, '0')
+    
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -411,7 +400,7 @@ fun TicketListItem(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = if (ticket.status == TicketStatus.AVAILABLE) "Disponible" else (ticket.customerName ?: "Sin nombre"),
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = MaterialTheme.typography.bodyMedium,
                     fontWeight = if (ticket.status == TicketStatus.AVAILABLE) FontWeight.Normal else FontWeight.Bold,
                     color = if (ticket.status == TicketStatus.AVAILABLE) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface,
                     maxLines = 1
