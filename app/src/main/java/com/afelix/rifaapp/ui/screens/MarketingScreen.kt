@@ -133,14 +133,7 @@ fun MarketingScreen(
                             .padding(20.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        if (showTitle) {
-                            Text(
-                                text = raffle.title,
-                                style = MaterialTheme.typography.headlineSmall,
-                                fontWeight = FontWeight.Black,
-                                textAlign = TextAlign.Center
-                            )
-                        }
+                        /* Title removed as per user request */
                         
                         if (showDescription) {
                             val prizeDisplay = if (raffle.prizeValue > 0) CurrencyFormatter.format(raffle.prizeValue) else raffle.description
