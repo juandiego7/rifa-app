@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -110,7 +111,7 @@ fun MarketingScreen(
                             if (marketingMessage.isNotEmpty()) {
                                 IconButton(onClick = { marketingMessage = "" }) {
                                     Icon(
-                                        imageVector = androidx.compose.material.icons.filled.Close,
+                                        imageVector = Icons.Default.Close,
                                         contentDescription = "Borrar texto",
                                         modifier = Modifier.size(18.dp)
                                     )
