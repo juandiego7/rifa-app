@@ -35,7 +35,6 @@ import com.afelix.rifaapp.domain.model.RaffleDashboardStats
 import com.afelix.rifaapp.domain.model.RaffleStatus
 import com.afelix.rifaapp.domain.model.Ticket
 import com.afelix.rifaapp.domain.model.TicketStatus
-import com.afelix.rifaapp.ui.components.ShareableGrid
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,11 +45,11 @@ fun RaffleDetailScreen(
     onBack: () -> Unit,
     onTicketsAssign: (List<Ticket>) -> Unit,
     onTicketsShare: (List<Ticket>) -> Unit,
+    onMarketingClick: () -> Unit,
     onDrawWinner: () -> Unit
 ) {
     if (raffle == null) return
 
-    val context = LocalContext.current
     var selectedIds by remember { mutableStateOf(emptySet<Long>()) }
     var isGridView by remember { mutableStateOf(true) }
     val isSelectionMode = selectedIds.isNotEmpty()
@@ -60,15 +59,6 @@ fun RaffleDetailScreen(
             selectedTickets.all { it.status != TicketStatus.AVAILABLE } &&
             selectedTickets.map { it.customerName }.distinct().size == 1 &&
             selectedTickets.map { it.customerPhone }.distinct().size == 1
-
-    var captureView by remember { mutableStateOf<View?>(null) }
-    
-    val shareGridImage: () -> Unit = {
-        captureView?.let {
-            val bitmap = ImageSharing.captureView(it)
-            ImageSharing.shareBitmap(context, bitmap, "rifa_${raffle.id}_grid")
-        }
-    }
 
     Scaffold(
         topBar = {
@@ -111,7 +101,7 @@ fun RaffleDetailScreen(
                         }
                     },
                     actions = {
-                        IconButton(onClick = { shareGridImage() }) {
+                        IconButton(onClick = onMarketingClick) {
                             Icon(Icons.Default.Image, contentDescription = "Compartir Publicidad")
                         }
                         IconButton(onClick = { isGridView = !isGridView }) {
@@ -130,17 +120,8 @@ fun RaffleDetailScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // DashboardSection visible on screen
             DashboardSection(raffle, stats, onDrawWinner)
             
-            // This is a hidden box only for capturing high-quality marketing images
-            Box(modifier = Modifier.size(0.dp).offset(x = 1000.dp)) {
-                ViewCaptureWrapper<View>(onViewReady = { captureView = it }) {
-                    ShareableGrid(raffle = raffle, tickets = tickets)
-                }
-            }
-            
-            // Actual interactive list/grid shown to the user
             LazyVerticalGrid(
                 columns = if (isGridView) GridCells.Adaptive(minSize = 44.dp) else GridCells.Fixed(2),
                 contentPadding = PaddingValues(if (isGridView) 4.dp else 8.dp),
@@ -227,7 +208,7 @@ fun DashboardSection(raffle: Raffle, stats: RaffleDashboardStats, onDrawWinner: 
                 )
             }
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             if (raffle.status == RaffleStatus.FINISHED && raffle.winningNumber != null) {
                 Surface(
@@ -315,13 +296,13 @@ fun CompactInfoCard(
         shape = RoundedCornerShape(8.dp)
     ) {
         Column(
-            modifier = Modifier.padding(8.dp),
+            modifier = Modifier.padding(6.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(14.dp))
+                Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(12.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = label, style = MaterialTheme.typography.labelSmall, fontSize = 9.sp, color = color.copy(alpha = 0.8f))
+                Text(text = label, style = MaterialTheme.typography.labelSmall, fontSize = 8.sp, color = color.copy(alpha = 0.8f))
             }
             Text(text = value, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = color, fontSize = 10.sp)
         }
@@ -337,6 +318,8 @@ fun TicketListItem(
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
+    val formattedNumber = ticket.number.toString().padStart(digits, '0')
+    
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -377,7 +360,7 @@ fun TicketListItem(
                 if (!ticket.customerPhone.isNullOrBlank()) {
                     Text(
                         text = ticket.customerPhone,
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 10.sp
                     )

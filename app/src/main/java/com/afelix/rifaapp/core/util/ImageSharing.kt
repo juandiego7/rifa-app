@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
-import android.graphics.Picture
+import android.graphics.Color
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
@@ -38,9 +38,20 @@ object ImageSharing {
         }
     }
 
-    fun captureView(view: View): Bitmap {
+    fun captureView(view: View): Bitmap? {
+        if (view.width <= 0 || view.height <= 0) {
+            // View not measured yet, try to measure it
+            val specWidth = View.MeasureSpec.makeMeasureSpec(view.width, View.MeasureSpec.EXACTLY)
+            val specHeight = View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED)
+            view.measure(specWidth, specHeight)
+            view.layout(0, 0, view.measuredWidth, view.measuredHeight)
+        }
+        
+        if (view.width <= 0 || view.height <= 0) return null
+
         val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
+        canvas.drawColor(Color.WHITE) // Ensure white background
         view.draw(canvas)
         return bitmap
     }
@@ -61,12 +72,20 @@ fun <T : View> ViewCaptureWrapper(
             }
             val composeView = ComposeView(context).apply {
                 setContent { content() }
+                layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                )
             }
             frameLayout.addView(composeView)
             @Suppress("UNCHECKED_CAST")
             onViewReady(frameLayout as T)
             frameLayout
         },
-        update = {}
+        update = {
+            // Ensure onViewReady is called if not already
+            @Suppress("UNCHECKED_CAST")
+            onViewReady(it as T)
+        }
     )
 }

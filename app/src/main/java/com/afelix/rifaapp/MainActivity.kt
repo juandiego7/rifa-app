@@ -85,6 +85,9 @@ class MainActivity : ComponentActivity() {
                             onTicketsShare = { selectedTickets ->
                                 ticketsToPreview = selectedTickets
                             },
+                            onMarketingClick = {
+                                navController.navigate("marketing")
+                            },
                             onDrawWinner = {
                                 showDrawWinner = true
                             }
@@ -124,6 +127,16 @@ class MainActivity : ComponentActivity() {
                                 onDismiss = { ticketsToPreview = null }
                             )
                         }
+                    }
+                    composable("marketing") {
+                        val raffle by viewModel.selectedRaffle.collectAsState()
+                        val tickets by viewModel.tickets.collectAsState()
+                        
+                        MarketingScreen(
+                            raffle = raffle,
+                            tickets = tickets,
+                            onBack = { navController.popBackStack() }
+                        )
                     }
                 }
             }
