@@ -105,7 +105,18 @@ fun MarketingScreen(
                         onValueChange = { marketingMessage = it },
                         label = { Text("Mensaje publicitario") },
                         modifier = Modifier.fillMaxWidth(),
-                        textStyle = MaterialTheme.typography.bodySmall
+                        textStyle = MaterialTheme.typography.bodySmall,
+                        trailingIcon = {
+                            if (marketingMessage.isNotEmpty()) {
+                                IconButton(onClick = { marketingMessage = "" }) {
+                                    Icon(
+                                        imageVector = androidx.compose.material.icons.filled.Close,
+                                        contentDescription = "Borrar texto",
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            }
+                        }
                     )
                 }
             }
