@@ -103,8 +103,8 @@ class MainActivity : ComponentActivity() {
                         
                         ticketsToAssign?.let { selectedTickets ->
                             TicketAssignmentDialog(
+                                raffle = raffle!!,
                                 tickets = selectedTickets,
-                                digits = raffle?.digits ?: 2,
                                 onDismiss = { ticketsToAssign = null },
                                 onConfirm = { updatedTickets ->
                                     viewModel.updateTickets(updatedTickets)

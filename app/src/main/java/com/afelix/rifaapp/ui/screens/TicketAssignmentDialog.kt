@@ -331,7 +331,8 @@ fun TicketAssignmentDialog(
         },
         confirmButton = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (status != TicketStatus.AVAILABLE) {
+                // Solo mostramos compartir si el estado no es Disponible y hay datos de contacto
+                if (status != TicketStatus.AVAILABLE && name.isNotBlank() && phoneNumber.isNotBlank()) {
                     IconButton(
                         onClick = shareTicket,
                         modifier = Modifier.padding(end = 8.dp)
