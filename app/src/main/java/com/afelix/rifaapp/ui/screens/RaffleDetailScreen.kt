@@ -151,10 +151,12 @@ fun RaffleDetailScreen(
                     }
                 }
             } else {
-                LazyColumn(
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
                     modifier = Modifier.weight(1f),
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     items(tickets) { ticket ->
                         val isSelected = ticket.id in selectedIds
@@ -458,12 +460,12 @@ fun TicketCircle(
                         Text(
                             text = ticket.customerName,
                             style = MaterialTheme.typography.labelSmall,
-                            fontSize = 6.sp,
+                            fontSize = 8.sp,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.padding(horizontal = 4.dp),
                             textAlign = TextAlign.Center,
-                            lineHeight = 7.sp
+                            lineHeight = 9.sp
                         )
                     }
                 }
