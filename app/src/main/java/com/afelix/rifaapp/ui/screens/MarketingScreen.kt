@@ -130,7 +130,7 @@ fun MarketingScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(Color.White)
-                            .padding(20.dp),
+                            .padding(8.dp), // Minimal padding to use full width
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         if (showTitle) {
@@ -167,17 +167,17 @@ fun MarketingScreen(
 
                         Spacer(Modifier.height(16.dp))
 
-                        // Even denser grid for the image (10 columns)
+                        // High density grid for social media (15 columns)
                         FlowRow(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.Center,
-                            verticalArrangement = Arrangement.spacedBy(2.dp),
-                            maxItemsInEachRow = 10
+                            verticalArrangement = Arrangement.spacedBy(1.dp),
+                            maxItemsInEachRow = 15
                         ) {
                             filteredTickets.forEach { ticket ->
                                 Box(
                                     modifier = Modifier
-                                        .size(30.dp)
+                                        .size(22.dp)
                                         .padding(1.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -194,7 +194,7 @@ fun MarketingScreen(
                                         Box(contentAlignment = Alignment.Center) {
                                             Text(
                                                 text = ticket.number.toString().padStart(raffle.digits, '0'),
-                                                fontSize = if (raffle.digits > 3) 7.sp else 9.sp,
+                                                fontSize = if (raffle.digits > 3) 6.sp else 8.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color = if (ticket.status == TicketStatus.AVAILABLE) Color.Gray else Color.Black
                                             )
