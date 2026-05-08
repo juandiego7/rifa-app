@@ -35,6 +35,8 @@ import com.afelix.rifaapp.domain.model.RaffleDashboardStats
 import com.afelix.rifaapp.domain.model.RaffleStatus
 import com.afelix.rifaapp.domain.model.Ticket
 import com.afelix.rifaapp.domain.model.TicketStatus
+import com.afelix.rifaapp.ui.components.ShareableGrid
+import com.afelix.rifaapp.ui.components.WinnerCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,6 +52,7 @@ fun RaffleDetailScreen(
 ) {
     if (raffle == null) return
 
+    val context = LocalContext.current
     var selectedIds by remember { mutableStateOf(emptySet<Long>()) }
     var isGridView by remember { mutableStateOf(true) }
     val isSelectionMode = selectedIds.isNotEmpty()
@@ -59,6 +62,17 @@ fun RaffleDetailScreen(
             selectedTickets.all { it.status != TicketStatus.AVAILABLE } &&
             selectedTickets.map { it.customerName }.distinct().size == 1 &&
             selectedTickets.map { it.customerPhone }.distinct().size == 1
+
+    var winnerCaptureView by remember { mutableStateOf<View?>(null) }
+    
+    val shareWinnerImage: () -> Unit = {
+        winnerCaptureView?.let {
+            val bitmap = ImageSharing.captureView(it)
+            if (bitmap != null) {
+                ImageSharing.shareBitmap(context, bitmap, "ganador_rifa_${raffle.id}")
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -120,7 +134,22 @@ fun RaffleDetailScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            DashboardSection(raffle, stats, onDrawWinner)
+            DashboardSection(
+                raffle = raffle, 
+                stats = stats, 
+                onDrawWinner = onDrawWinner,
+                onShareWinner = { shareWinnerImage() }
+            )
+            
+            // Hidden box for winner image capture
+            if (raffle.status == RaffleStatus.FINISHED) {
+                Box(modifier = Modifier.width(360.dp).wrapContentHeight().offset(x = 2000.dp)) {
+                    ViewCaptureWrapper<View>(onViewReady = { winnerCaptureView = it }) {
+                        val winnerTicket = tickets.find { it.number == raffle.winningNumber }
+                        WinnerCard(raffle = raffle, winnerTicket = winnerTicket)
+                    }
+                }
+            }
             
             LazyVerticalGrid(
                 columns = if (isGridView) GridCells.Adaptive(minSize = 44.dp) else GridCells.Fixed(2),
@@ -178,60 +207,93 @@ fun RaffleDetailScreen(
 }
 
 @Composable
-fun DashboardSection(raffle: Raffle, stats: RaffleDashboardStats, onDrawWinner: () -> Unit) {
+fun DashboardSection(
+    raffle: Raffle, 
+    stats: RaffleDashboardStats, 
+    onDrawWinner: () -> Unit,
+    onShareWinner: () -> Unit
+) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 2.dp
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            // Prize and Date Row
-            Row(
+        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+            // Prize and Date Row (Purple Style)
+            Surface(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                color = Color(0xFFF3E5F5),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFF7B1FA2), modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFF7B1FA2), modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                text = "PREMIO", 
+                                style = MaterialTheme.typography.labelSmall, 
+                                color = Color(0xFF7B1FA2), 
+                                fontWeight = FontWeight.Bold, 
+                                fontSize = 8.sp
+                            )
+                        }
+                        Text(
+                            text = "Sorteo: ${DateFormatter.format(raffle.drawDate)}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.Gray
+                        )
+                    }
+                    
                     Text(
                         text = if(raffle.prizeValue > 0) CurrencyFormatter.format(raffle.prizeValue) else raffle.description,
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.ExtraBold,
-                        color = Color(0xFF4A148C)
+                        color = Color(0xFF4A148C),
+                        textAlign = TextAlign.Center
                     )
-                }
-                Text(
-                    text = "Sorteo: ${DateFormatter.format(raffle.drawDate)}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(8.dp))
 
-            if (raffle.status == RaffleStatus.FINISHED && raffle.winningNumber != null) {
-                Surface(
-                    color = Color(0xFFFFEB3B),
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Icon(Icons.Default.EmojiEvents, null, tint = Color(0xFFF57F17), modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            text = "GANADOR: ${raffle.winningNumber.toString().padStart(raffle.digits, '0')}",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Black,
-                            color = Color(0xFFF57F17)
-                        )
+                    if (raffle.status == RaffleStatus.FINISHED && raffle.winningNumber != null) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        HorizontalDivider(color = Color(0xFF7B1FA2).copy(alpha = 0.2f), thickness = 1.dp)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(Icons.Default.EmojiEvents, null, tint = Color(0xFFF57F17), modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = "GANADOR: ${raffle.winningNumber.toString().padStart(raffle.digits, '0')}",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Black,
+                                color = Color(0xFFF57F17)
+                            )
+                            Spacer(Modifier.width(8.dp))
+                            IconButton(
+                                onClick = onShareWinner,
+                                modifier = Modifier.size(24.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.Share, 
+                                    contentDescription = "Compartir Ganador", 
+                                    tint = Color(0xFFF57F17),
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
                     }
                 }
             }
+            
+            Spacer(modifier = Modifier.height(8.dp))
             
             // Financial and Tickets Stats
             Row(
@@ -318,8 +380,6 @@ fun TicketListItem(
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
-    val formattedNumber = ticket.number.toString().padStart(digits, '0')
-    
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -351,7 +411,7 @@ fun TicketListItem(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = if (ticket.status == TicketStatus.AVAILABLE) "Disponible" else (ticket.customerName ?: "Sin nombre"),
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyLarge,
                     fontWeight = if (ticket.status == TicketStatus.AVAILABLE) FontWeight.Normal else FontWeight.Bold,
                     color = if (ticket.status == TicketStatus.AVAILABLE) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface,
                     maxLines = 1
