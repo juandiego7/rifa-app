@@ -248,22 +248,22 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
                                 text = "$occupied",
-                                style = MaterialTheme.typography.labelSmall,
+                                style = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.Black,
-                                fontSize = 9.sp,
+                                fontSize = 12.sp,
                                 color = Color(0xFF2E7D32),
-                                lineHeight = 10.sp
+                                lineHeight = 12.sp
                             )
                             HorizontalDivider(
-                                modifier = Modifier.width(18.dp),
-                                thickness = 0.5.dp,
+                                modifier = Modifier.width(24.dp),
+                                thickness = 1.dp,
                                 color = Color.LightGray
                             )
                             Text(
                                 text = "${stats.totalTickets}",
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 8.sp,
+                                fontSize = 10.sp,
                                 color = Color.Gray,
                                 lineHeight = 10.sp
                             )
