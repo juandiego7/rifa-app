@@ -184,11 +184,13 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 2. Financial Row: Recaudado vs Valor Boleta (Increased Size)
+            // 2. Financial and Progress Row: Combined for maximum impact
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                // Recaudado
                 InfoBox(
                     modifier = Modifier.weight(1f),
                     icon = Icons.Default.AccountBalanceWallet,
@@ -199,6 +201,52 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
                     isLarge = true,
                     extraLargeValue = true
                 )
+
+                // Central Circular Progress
+                raffle.stats?.let { stats ->
+                    val occupied = stats.soldTickets + stats.reservedTickets
+                    val progress = if (stats.totalTickets > 0) occupied.toFloat() / stats.totalTickets else 0f
+                    
+                    Box(
+                        modifier = Modifier.size(60.dp), // Comfortable size between boxes
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            progress = { progress },
+                            modifier = Modifier.fillMaxSize(),
+                            color = Color(0xFF4CAF50),
+                            trackColor = Color(0xFFF1F1F1),
+                            strokeWidth = 5.dp,
+                            strokeCap = StrokeCap.Round,
+                            gapSize = 0.dp
+                        )
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "$occupied",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Black,
+                                fontSize = 13.sp,
+                                color = Color(0xFF2E7D32),
+                                lineHeight = 13.sp
+                            )
+                            HorizontalDivider(
+                                modifier = Modifier.width(26.dp),
+                                thickness = 1.dp,
+                                color = Color.LightGray
+                            )
+                            Text(
+                                text = "${stats.totalTickets}",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 11.sp,
+                                color = Color.Gray,
+                                lineHeight = 11.sp
+                            )
+                        }
+                    }
+                }
+
+                // Valor Boleta
                 InfoBox(
                     modifier = Modifier.weight(1f),
                     icon = Icons.Default.MonetizationOn,
@@ -213,7 +261,7 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
             
             Spacer(modifier = Modifier.height(12.dp))
             
-            // Bottom Row: Date + Small Circular Progress + Status
+            // Bottom Row: Date + Status (Progress moved out)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -222,54 +270,10 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
                 // Draw Date
                 Text(
                     text = "Sorteo: ${DateFormatter.format(raffle.drawDate)}",
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyLarge, // Increased date size
                     color = Color.DarkGray,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Bold
                 )
-                
-                // 3. Small Circular Progress with Text inside
-                raffle.stats?.let { stats ->
-                    val occupied = stats.soldTickets + stats.reservedTickets
-                    val progress = if (stats.totalTickets > 0) occupied.toFloat() / stats.totalTickets else 0f
-                    
-                    Box(
-                        modifier = Modifier.size(54.dp), // Slightly larger to fit text comfortably
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(
-                            progress = { progress },
-                            modifier = Modifier.fillMaxSize(),
-                            color = Color(0xFF4CAF50),
-                            trackColor = Color(0xFFF1F1F1),
-                            strokeWidth = 4.dp,
-                            strokeCap = StrokeCap.Round,
-                            gapSize = 0.dp
-                        )
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = "$occupied",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Black,
-                                fontSize = 12.sp,
-                                color = Color(0xFF2E7D32),
-                                lineHeight = 12.sp
-                            )
-                            HorizontalDivider(
-                                modifier = Modifier.width(24.dp),
-                                thickness = 1.dp,
-                                color = Color.LightGray
-                            )
-                            Text(
-                                text = "${stats.totalTickets}",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 10.sp,
-                                color = Color.Gray,
-                                lineHeight = 10.sp
-                            )
-                        }
-                    }
-                }
                 
                 // Status Badge
                 Surface(
@@ -278,9 +282,9 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
                 ) {
                     Text(
                         text = if (raffle.status == RaffleStatus.ACTIVE) "ACTIVA" else "CERRADA",
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        style = MaterialTheme.typography.labelLarge,
-                        fontSize = 11.sp,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp), // More padding
+                        style = MaterialTheme.typography.titleMedium, // Larger status
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = if (raffle.status == RaffleStatus.ACTIVE) Color(0xFF1976D2) else Color.Gray
                     )
