@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
@@ -59,9 +60,10 @@ class MainActivity : ComponentActivity() {
                 val showAdBanner = currentRoute != "detail"
 
                 Scaffold(
+                    modifier = Modifier.navigationBarsPadding(),
                     bottomBar = {
                         if (showAdBanner) {
-                            AdBanner(modifier = Modifier.padding(bottom = 8.dp))
+                            AdBanner()
                         }
                     }
                 ) { padding ->
