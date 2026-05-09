@@ -4,82 +4,56 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Long Shadow (Subtle) -->
+    <!-- Patas de la tómbola -->
     <path
-        android:fillColor="#1A000000"
-        android:pathData="M54,54 L108,108 L108,54 Z" />
+        android:fillColor="#0277BD"
+        android:pathData="M42,82 L48,72 L52,72 L48,82 Z" />
+    <path
+        android:fillColor="#0277BD"
+        android:pathData="M66,82 L60,72 L56,72 L60,82 Z" />
+    <path
+        android:fillColor="#64B5F6"
+        android:pathData="M38,82 L46,82 L46,86 L38,86 Z" />
+    <path
+        android:fillColor="#64B5F6"
+        android:pathData="M62,82 L70,82 L70,86 L62,86 Z" />
 
-    <!-- Stand (Support) -->
+    <!-- Borde Octagonal Amarillo -->
+    <path
+        android:fillColor="#FFD54F"
+        android:pathData="M40,25 L68,25 L83,40 L83,68 L68,83 L40,83 L25,68 L25,40 Z" />
+
+    <!-- Interior de la tómbola (Cristal Azul Claro) -->
+    <path
+        android:fillColor="#BBDEFB"
+        android:pathData="M42,30 L66,30 L78,42 L78,66 L66,78 L42,78 L30,66 L30,42 Z" />
+
+    <!-- Líneas radiales blancas -->
     <path
         android:strokeColor="#FFFFFF"
-        android:strokeWidth="3.5"
-        android:strokeLineCap="round"
-        android:pathData="M32,86 L76,86 M38,86 L48,54 M70,86 L60,54" />
-
-    <!-- Raffle Drum Body (Octagon with Depth) -->
-    <!-- Back Face -->
-    <path
-        android:strokeColor="#66FFFFFF"
-        android:strokeWidth="1.5"
-        android:pathData="M48,42 L60,42 L68,54 L60,66 L48,66 L40,54 Z" />
-
-    <!-- Connector Lines -->
-    <path
-        android:strokeColor="#33FFFFFF"
         android:strokeWidth="1"
-        android:pathData="M43,35 L48,42 M65,35 L60,42 M73,54 L68,54 M65,73 L60,66 M43,73 L48,66 M35,54 L40,54" />
+        android:pathData="M54,54 L54,30 M54,54 L78,42 M54,54 L78,66 M54,54 L54,78 M54,54 L30,66 M54,54 L30,42" />
 
-    <!-- Front Face -->
+    <!-- Eje Central Azul Oscuro -->
     <path
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="3"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:pathData="M43,35 L65,35 L73,54 L65,73 L43,73 L35,54 Z" />
-
-    <!-- Handle -->
+        android:fillColor="#1565C0"
+        android:pathData="M54,54 m-10,0 a10,10 0 1,1 20,0 a10,10 0 1,1 -20,0" />
     <path
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="3.5"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:pathData="M73,54 L85,54 L85,68 L92,68" />
+        android:fillColor="#64B5F6"
+        android:pathData="M54,54 m-4,0 a4,4 0 1,1 8,0 a4,4 0 1,1 -8,0" />
 
-    <!-- Axis Point -->
+    <!-- Bolitas Rojas -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M73.5,54 A1.5,1.5 0 1,1 70.5,54 A1.5,1.5 0 1,1 73.5,54" />
-
-    <!-- Numbered Balls -->
-
-    <!-- Ball 7 (Yellow) -->
-    <group android:translateX="34" android:translateY="64">
-        <path android:fillColor="#FFD54F" android:pathData="M0,6 A6,6 0 1,1 0,-6 A6,6 0 1,1 0,6" />
-        <path android:fillColor="#333333" android:pathData="M-1.5,-2.5 L1.5,-2.5 L-0.5,2.5" />
-    </group>
-
-    <!-- Ball 3 (Green) -->
-    <group android:translateX="42" android:translateY="54">
-        <path android:fillColor="#8BC34A" android:pathData="M0,6 A6,6 0 1,1 0,-6 A6,6 0 1,1 0,6" />
-        <path android:fillColor="#333333" android:pathData="M-1.5,-2.5 L1.5,-2.5 L1.5,-0.5 L0,-0.5 M1.5,-0.5 L1.5,2.5 L-1.5,2.5" />
-    </group>
-
-    <!-- Ball 2 (Purple) -->
-    <group android:translateX="51" android:translateY="66">
-        <path android:fillColor="#7E57C2" android:pathData="M0,6 A6,6 0 1,1 0,-6 A6,6 0 1,1 0,6" />
-        <path android:fillColor="#FFFFFF" android:pathData="M-1.5,-2.5 L1.5,-2.5 L1.5,-0.5 L-1.5,1.5 L1.5,1.5 L1.5,2.5 L-1.5,2.5" />
-    </group>
-
-    <!-- Ball 9 (Blue) -->
-    <group android:translateX="60" android:translateY="53">
-        <path android:fillColor="#448AFF" android:pathData="M0,6 A6,6 0 1,1 0,-6 A6,6 0 1,1 0,6" />
-        <path android:fillColor="#FFFFFF" android:pathData="M1.5,2.5 L1.5,-2.5 L-1.5,-2.5 L-1.5,0.5 L1.5,0.5" />
-    </group>
-
-    <!-- Ball 5 (Pink) -->
-    <group android:translateX="67" android:translateY="64">
-        <path android:fillColor="#EC407A" android:pathData="M0,6 A6,6 0 1,1 0,-6 A6,6 0 1,1 0,6" />
-        <path android:fillColor="#FFFFFF" android:pathData="M1.5,-2.5 L-1.5,-2.5 L-1.5,-0.5 L1.5,-0.5 L1.5,2.5 L-1.5,2.5" />
-    </group>
+        android:fillColor="#EF5350"
+        android:pathData="M38,48 m-5,0 a5,5 0 1,1 10,0 a5,5 0 1,1 -10,0" />
+    <path
+        android:fillColor="#EF5350"
+        android:pathData="M45,62 m-5,0 a5,5 0 1,1 10,0 a5,5 0 1,1 -10,0" />
+    <path
+        android:fillColor="#EF5350"
+        android:pathData="M63,60 m-5,0 a5,5 0 1,1 10,0 a5,5 0 1,1 -10,0" />
+    <path
+        android:fillColor="#EF5350"
+        android:pathData="M75,52 m-5,0 a5,5 0 1,1 10,0 a5,5 0 1,1 -10,0" />
 
 </vector>

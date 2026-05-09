@@ -99,10 +99,9 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Header: Titulo
             Text(
                 text = raffle.title,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF1A1C1E)
             )
@@ -129,15 +128,15 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = "PREMIO", 
-                            style = MaterialTheme.typography.labelSmall, 
+                            style = MaterialTheme.typography.labelMedium, 
                             color = Color(0xFF7B1FA2), 
                             fontWeight = FontWeight.Bold, 
-                            fontSize = 8.sp
+                            fontSize = 10.sp
                         )
                     }
                     Text(
                         text = if (raffle.prizeValue > 0) CurrencyFormatter.format(raffle.prizeValue) else raffle.description,
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.ExtraBold,
                         color = Color(0xFF4A148C),
                         textAlign = TextAlign.Center
@@ -152,11 +151,11 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
-                            Icon(Icons.Default.EmojiEvents, null, tint = Color(0xFFF57F17), modifier = Modifier.size(16.dp))
+                            Icon(Icons.Default.EmojiEvents, null, tint = Color(0xFFF57F17), modifier = Modifier.size(20.dp))
                             Spacer(Modifier.width(8.dp))
                             Text(
                                 text = "GANADOR: ${raffle.winningNumber.toString().padStart(raffle.digits, '0')}",
-                                style = MaterialTheme.typography.labelMedium,
+                                style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Black,
                                 color = Color(0xFFF57F17)
                             )
@@ -178,7 +177,8 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
                     label = "Recaudado",
                     value = CurrencyFormatter.format(raffle.stats?.moneyCollected ?: 0.0),
                     containerColor = Color(0xFFE8F5E9),
-                    contentColor = Color(0xFF2E7D32)
+                    contentColor = Color(0xFF2E7D32),
+                    isLarge = true
                 )
                 InfoBox(
                     modifier = Modifier.weight(1f),
@@ -186,7 +186,8 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
                     label = "Valor Boleta",
                     value = CurrencyFormatter.format(raffle.ticketValue),
                     containerColor = Color(0xFFFFF3E0),
-                    contentColor = Color(0xFFE65100)
+                    contentColor = Color(0xFFE65100),
+                    isLarge = true
                 )
             }
             
@@ -283,7 +284,8 @@ fun InfoBox(
     label: String,
     value: String,
     containerColor: Color,
-    contentColor: Color
+    contentColor: Color,
+    isLarge: Boolean = false
 ) {
     Surface(
         modifier = modifier,
@@ -291,21 +293,21 @@ fun InfoBox(
         shape = RoundedCornerShape(10.dp)
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = if (isLarge) 10.dp else 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
                 imageVector = icon, 
                 contentDescription = null, 
                 tint = contentColor, 
-                modifier = Modifier.size(16.dp)
+                modifier = Modifier.size(if (isLarge) 20.dp else 16.dp)
             )
             Spacer(modifier = Modifier.width(6.dp))
             Column {
                 Text(
                     text = label, 
                     style = MaterialTheme.typography.labelSmall, 
-                    fontSize = 8.sp,
+                    fontSize = if (isLarge) 10.sp else 8.sp,
                     color = contentColor.copy(alpha = 0.7f)
                 )
                 Text(
@@ -314,7 +316,7 @@ fun InfoBox(
                     fontWeight = FontWeight.Bold, 
                     color = contentColor,
                     maxLines = 1,
-                    fontSize = 11.sp
+                    fontSize = if (isLarge) 13.sp else 11.sp
                 )
             }
         }

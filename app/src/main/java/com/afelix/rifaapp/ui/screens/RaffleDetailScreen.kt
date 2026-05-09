@@ -228,7 +228,7 @@ fun DashboardSection(
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Row(
@@ -237,57 +237,57 @@ fun DashboardSection(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFF7B1FA2), modifier = Modifier.size(16.dp))
+                            Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFF7B1FA2), modifier = Modifier.size(18.dp))
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = "PREMIO", 
-                                style = MaterialTheme.typography.labelSmall, 
+                                style = MaterialTheme.typography.labelMedium, 
                                 color = Color(0xFF7B1FA2), 
                                 fontWeight = FontWeight.Bold, 
-                                fontSize = 8.sp
+                                fontSize = 10.sp
                             )
                         }
                         Text(
                             text = "Sorteo: ${DateFormatter.format(raffle.drawDate)}",
-                            style = MaterialTheme.typography.labelSmall,
+                            style = MaterialTheme.typography.labelMedium,
                             color = Color.Gray
                         )
                     }
                     
                     Text(
                         text = if(raffle.prizeValue > 0) CurrencyFormatter.format(raffle.prizeValue) else raffle.description,
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.ExtraBold,
                         color = Color(0xFF4A148C),
                         textAlign = TextAlign.Center
                     )
 
                     if (raffle.status == RaffleStatus.FINISHED && raffle.winningNumber != null) {
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
                         HorizontalDivider(color = Color(0xFF7B1FA2).copy(alpha = 0.2f), thickness = 1.dp)
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(10.dp))
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
-                            Icon(Icons.Default.EmojiEvents, null, tint = Color(0xFFF57F17), modifier = Modifier.size(18.dp))
+                            Icon(Icons.Default.EmojiEvents, null, tint = Color(0xFFF57F17), modifier = Modifier.size(22.dp))
                             Spacer(Modifier.width(8.dp))
                             Text(
                                 text = "GANADOR: ${raffle.winningNumber.toString().padStart(raffle.digits, '0')}",
-                                style = MaterialTheme.typography.titleMedium,
+                                style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Black,
                                 color = Color(0xFFF57F17)
                             )
                             Spacer(Modifier.width(8.dp))
                             IconButton(
                                 onClick = onShareWinner,
-                                modifier = Modifier.size(24.dp)
+                                modifier = Modifier.size(28.dp)
                             ) {
                                 Icon(
                                     Icons.Default.Share, 
                                     contentDescription = "Compartir Ganador", 
                                     tint = Color(0xFFF57F17),
-                                    modifier = Modifier.size(16.dp)
+                                    modifier = Modifier.size(20.dp)
                                 )
                             }
                         }
