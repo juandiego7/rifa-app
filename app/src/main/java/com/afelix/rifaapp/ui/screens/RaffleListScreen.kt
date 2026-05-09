@@ -166,66 +166,77 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 2. Financial Row
+            // Financial and Progress Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                InfoBox(
+                // Financial Column
+                Column(
                     modifier = Modifier.weight(1f),
-                    icon = Icons.Default.AccountBalanceWallet,
-                    label = "Recaudado",
-                    value = CurrencyFormatter.format(raffle.stats?.moneyCollected ?: 0.0),
-                    containerColor = Color(0xFFE8F5E9),
-                    contentColor = Color(0xFF2E7D32),
-                    isLarge = true
-                )
-                InfoBox(
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Default.MonetizationOn,
-                    label = "Valor Boleta",
-                    value = CurrencyFormatter.format(raffle.ticketValue),
-                    containerColor = Color(0xFFFFF3E0),
-                    contentColor = Color(0xFFE65100),
-                    isLarge = true
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            // 3. Progress Section
-            raffle.stats?.let { stats ->
-                val occupied = stats.soldTickets + stats.reservedTickets
-                val progress = if (stats.totalTickets > 0) occupied.toFloat() / stats.totalTickets else 0f
-                val percentage = (progress * 100).toInt()
-                
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Row(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    InfoBox(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = "$occupied de ${stats.totalTickets} boletas",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Medium
-                        )
-                        Text(
-                            text = "$percentage%",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Black,
-                            color = Color(0xFF4CAF50)
-                        )
-                    }
-                    LinearProgressIndicator(
-                        progress = { progress },
-                        modifier = Modifier.fillMaxWidth().height(6.dp).clip(CircleShape),
-                        color = Color(0xFF4CAF50),
-                        trackColor = Color(0xFFF1F1F1),
-                        strokeCap = StrokeCap.Round,
-                        gapSize = 0.dp,
-                        drawStopIndicator = {}
+                        icon = Icons.Default.AccountBalanceWallet,
+                        label = "Recaudado",
+                        value = CurrencyFormatter.format(raffle.stats?.moneyCollected ?: 0.0),
+                        containerColor = Color(0xFFE8F5E9),
+                        contentColor = Color(0xFF2E7D32),
+                        isLarge = true
                     )
+                    InfoBox(
+                        modifier = Modifier.fillMaxWidth(),
+                        icon = Icons.Default.MonetizationOn,
+                        label = "Valor Boleta",
+                        value = CurrencyFormatter.format(raffle.ticketValue),
+                        containerColor = Color(0xFFFFF3E0),
+                        contentColor = Color(0xFFE65100),
+                        isLarge = true
+                    )
+                }
+
+                // Circular Progress
+                raffle.stats?.let { stats ->
+                    val occupied = stats.soldTickets + stats.reservedTickets
+                    val progress = if (stats.totalTickets > 0) occupied.toFloat() / stats.totalTickets else 0f
+                    
+                    Box(
+                        modifier = Modifier.size(90.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            progress = { progress },
+                            modifier = Modifier.fillMaxSize(),
+                            color = Color(0xFF4CAF50),
+                            trackColor = Color(0xFFF1F1F1),
+                            strokeWidth = 8.dp,
+                            strokeCap = StrokeCap.Round,
+                            gapSize = 0.dp
+                        )
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "$occupied",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Black,
+                                color = Color(0xFF2E7D32),
+                                lineHeight = 16.sp
+                            )
+                            HorizontalDivider(
+                                modifier = Modifier.width(30.dp),
+                                thickness = 1.dp,
+                                color = Color.LightGray
+                            )
+                            Text(
+                                text = "${stats.totalTickets}",
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Gray,
+                                lineHeight = 12.sp
+                            )
+                        }
+                    }
                 }
             }
             
