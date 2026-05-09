@@ -227,36 +227,47 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
                     fontWeight = FontWeight.Medium
                 )
                 
-                // 3. Small Circular Progress between Date and Status
+                // 3. Small Circular Progress with Text inside
                 raffle.stats?.let { stats ->
                     val occupied = stats.soldTickets + stats.reservedTickets
                     val progress = if (stats.totalTickets > 0) occupied.toFloat() / stats.totalTickets else 0f
                     
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    Box(
+                        modifier = Modifier.size(54.dp), // Slightly larger to fit text comfortably
+                        contentAlignment = Alignment.Center
                     ) {
-                        Box(
-                            modifier = Modifier.size(36.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(
-                                progress = { progress },
-                                modifier = Modifier.fillMaxSize(),
-                                color = Color(0xFF4CAF50),
-                                trackColor = Color(0xFFF1F1F1),
-                                strokeWidth = 4.dp,
-                                strokeCap = StrokeCap.Round,
-                                gapSize = 0.dp
+                        CircularProgressIndicator(
+                            progress = { progress },
+                            modifier = Modifier.fillMaxSize(),
+                            color = Color(0xFF4CAF50),
+                            trackColor = Color(0xFFF1F1F1),
+                            strokeWidth = 4.dp,
+                            strokeCap = StrokeCap.Round,
+                            gapSize = 0.dp
+                        )
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(
+                                text = "$occupied",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Black,
+                                fontSize = 9.sp,
+                                color = Color(0xFF2E7D32),
+                                lineHeight = 10.sp
+                            )
+                            HorizontalDivider(
+                                modifier = Modifier.width(18.dp),
+                                thickness = 0.5.dp,
+                                color = Color.LightGray
+                            )
+                            Text(
+                                text = "${stats.totalTickets}",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 8.sp,
+                                color = Color.Gray,
+                                lineHeight = 10.sp
                             )
                         }
-                        Text(
-                            text = "$occupied/${stats.totalTickets}",
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Black,
-                            color = Color(0xFF2E7D32),
-                            fontSize = 11.sp
-                        )
                     }
                 }
                 
