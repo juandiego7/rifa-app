@@ -325,8 +325,9 @@ fun InfoBox(
                 Text(
                     text = label, 
                     style = MaterialTheme.typography.labelSmall, 
-                    fontSize = if (isLarge) 10.sp else 8.sp,
-                    color = contentColor.copy(alpha = 0.7f)
+                    fontSize = if (isLarge) 12.sp else 9.sp, // Aumentado de 10.sp a 12.sp
+                    color = contentColor.copy(alpha = 0.8f),
+                    fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = value, 
