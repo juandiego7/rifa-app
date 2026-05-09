@@ -24,7 +24,6 @@ import com.afelix.rifaapp.core.util.CurrencyFormatter
 import com.afelix.rifaapp.core.util.DateFormatter
 import com.afelix.rifaapp.domain.model.Raffle
 import com.afelix.rifaapp.domain.model.RaffleStatus
-import com.afelix.rifaapp.ui.components.BrandingFooter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,10 +82,6 @@ fun RaffleListScreen(
                     onClick = { onRaffleClick(raffle) },
                     onDelete = { raffleToDelete = raffle }
                 )
-            }
-            
-            item {
-                BrandingFooter()
             }
         }
     }
