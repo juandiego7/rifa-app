@@ -1,30 +1,52 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="200dp"
-    android:height="80dp"
+    android:height="100dp"
     android:viewportWidth="200"
-    android:viewportHeight="80">
+    android:viewportHeight="100">
 
     <!-- Text "from" -->
     <path
         android:fillColor="#888888"
-        android:pathData="M85,15 L87,15 L87,17 L85,17 Z M85,18 L87,18 L87,22 L85,22 Z M88,18 L90,18 L90,19 L88,19 Z M88,20 L90,20 L90,22 L88,22 Z M91,18 L93,18 L93,22 L91,22 Z M94,18 L96,18 L96,19 L94,19 Z M94,20 L96,20 L96,22 L94,22 Z" />
+        android:pathData="M85,25 L87,25 L87,27 L85,27 Z M85,28 L87,28 L87,32 L85,32 Z M88,28 L90,28 L90,29 L88,29 Z M88,30 L90,30 L90,32 L88,32 Z M91,28 L93,28 L93,32 L91,32 Z M94,28 L96,28 L96,29 L94,29 Z M94,30 L96,30 L96,32 L94,32 Z" />
 
-    <!-- Simplified AFELIX Logo representation as vectors -->
-    <!-- Sun/Ripples -->
+    <!-- AFELIX Logo Design -->
+    <!-- Sun (Orange) -->
     <path
         android:fillColor="#F39C12"
-        android:pathData="M30,55 A12,12 0 1,1 54,55" />
+        android:pathData="M25,65 A15,15 0 1,1 55,65" />
+
+    <!-- Ripples (Orange) -->
     <path
         android:strokeColor="#F39C12"
-        android:strokeWidth="1.5"
+        android:strokeWidth="1.2"
         android:strokeLineCap="round"
-        android:pathData="M25,58 L59,58 M28,62 L56,62" />
+        android:pathData="M20,68 L60,68 M23,72 L57,72 M28,76 L52,76 M33,80 L47,80 M38,84 L42,84" />
 
-    <!-- Text AFELIX -->
+    <!-- AFELIX Text (Blue) -->
+    <!-- A integrated into sun -->
     <path
         android:fillColor="#2A80B9"
-        android:pathData="M65,42 L85,42 L85,46 L69,46 L69,52 L83,52 L83,56 L69,56 L69,68 L65,68 Z" />
+        android:pathData="M35,65 L40,48 L45,65 L42.5,65 L40,54 L37.5,65 Z M37,60 L43,60 L43,61 L37,61 Z" />
+
+    <!-- FELIX Part -->
+    <!-- F -->
     <path
         android:fillColor="#2A80B9"
-        android:pathData="M90,42 L110,42 L110,46 L94,46 L94,52 L108,52 L108,56 L94,56 L94,64 L110,64 L110,68 L90,68 Z" />
+        android:pathData="M60,48 L80,48 L80,52 L64,52 L64,58 L78,58 L78,62 L64,62 L64,74 L60,74 Z" />
+    <!-- E -->
+    <path
+        android:fillColor="#2A80B9"
+        android:pathData="M85,48 L105,48 L105,52 L89,52 L89,58 L103,58 L103,62 L89,62 L89,70 L105,70 L105,74 L85,74 Z" />
+    <!-- L -->
+    <path
+        android:fillColor="#2A80B9"
+        android:pathData="M110,48 L114,48 L114,70 L125,70 L125,74 L110,74 Z" />
+    <!-- I -->
+    <path
+        android:fillColor="#2A80B9"
+        android:pathData="M130,48 L134,48 L134,74 L130,74 Z" />
+    <!-- X -->
+    <path
+        android:fillColor="#2A80B9"
+        android:pathData="M140,48 L145,48 L150,58 L155,48 L160,48 L152,61 L160,74 L155,74 L150,64 L145,74 L140,74 L148,61 Z" />
 </vector>
