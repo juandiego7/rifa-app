@@ -175,9 +175,6 @@ fun CreateRaffleScreen(
             ) {
                 Text("Crear Rifa")
             }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            AdBanner()
         }
     }
 }
