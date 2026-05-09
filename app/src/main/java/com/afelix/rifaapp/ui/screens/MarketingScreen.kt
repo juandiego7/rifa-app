@@ -29,6 +29,7 @@ import com.afelix.rifaapp.core.util.ViewCaptureWrapper
 import com.afelix.rifaapp.domain.model.Raffle
 import com.afelix.rifaapp.domain.model.Ticket
 import com.afelix.rifaapp.domain.model.TicketStatus
+import com.afelix.rifaapp.ui.components.BrandingFooter
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable

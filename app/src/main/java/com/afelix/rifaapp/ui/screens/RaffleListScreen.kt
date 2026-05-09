@@ -87,6 +87,7 @@ fun RaffleListScreen(
     }
 }
 
+
 @Composable
 fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
     Card(

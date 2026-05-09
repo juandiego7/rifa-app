@@ -5,7 +5,7 @@
     <style name="Theme.App.Starting" parent="Theme.SplashScreen">
         <item name="windowSplashScreenBackground">@color/white</item>
         <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
-        <item name="android:windowSplashScreenBrandingImage" tools:targetApi="31">@drawable/rifaslogo</item>
+        <item name="android:windowSplashScreenBrandingImage" tools:targetApi="31">@drawable/ic_branding_from_afelix</item>
         <item name="postSplashScreenTheme">@style/Theme.RifaApp</item>
     </style>
 </resources>

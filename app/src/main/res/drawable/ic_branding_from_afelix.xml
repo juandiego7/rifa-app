@@ -1,0 +1,30 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="80dp"
+    android:viewportWidth="200"
+    android:viewportHeight="80">
+
+    <!-- Text "from" -->
+    <path
+        android:fillColor="#888888"
+        android:pathData="M85,15 L87,15 L87,17 L85,17 Z M85,18 L87,18 L87,22 L85,22 Z M88,18 L90,18 L90,19 L88,19 Z M88,20 L90,20 L90,22 L88,22 Z M91,18 L93,18 L93,22 L91,22 Z M94,18 L96,18 L96,19 L94,19 Z M94,20 L96,20 L96,22 L94,22 Z" />
+
+    <!-- Simplified AFELIX Logo representation as vectors -->
+    <!-- Sun/Ripples -->
+    <path
+        android:fillColor="#F39C12"
+        android:pathData="M30,55 A12,12 0 1,1 54,55" />
+    <path
+        android:strokeColor="#F39C12"
+        android:strokeWidth="1.5"
+        android:strokeLineCap="round"
+        android:pathData="M25,58 L59,58 M28,62 L56,62" />
+
+    <!-- Text AFELIX -->
+    <path
+        android:fillColor="#2A80B9"
+        android:pathData="M65,42 L85,42 L85,46 L69,46 L69,52 L83,52 L83,56 L69,56 L69,68 L65,68 Z" />
+    <path
+        android:fillColor="#2A80B9"
+        android:pathData="M90,42 L110,42 L110,46 L94,46 L94,52 L108,52 L108,56 L94,56 L94,64 L110,64 L110,68 L90,68 Z" />
+</vector>
