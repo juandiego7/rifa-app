@@ -14,6 +14,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.afelix.rifaapp.core.util.DateFormatter
 import com.afelix.rifaapp.domain.model.Raffle
+import com.afelix.rifaapp.ui.components.AdBanner
 import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -174,6 +175,9 @@ fun CreateRaffleScreen(
             ) {
                 Text("Crear Rifa")
             }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            AdBanner()
         }
     }
 }

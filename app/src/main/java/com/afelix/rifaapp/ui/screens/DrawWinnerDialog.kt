@@ -1,6 +1,5 @@
 package com.afelix.rifaapp.ui.screens
 
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -16,6 +15,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.afelix.rifaapp.domain.model.Raffle
+import com.afelix.rifaapp.ui.components.AdBanner
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.random.Random
@@ -98,6 +98,10 @@ fun DrawWinnerDialog(
                         }
                     }
                 }
+                
+                // Add Banner inside scrollable content
+                Spacer(modifier = Modifier.height(16.dp))
+                AdBanner()
             }
         },
         confirmButton = {

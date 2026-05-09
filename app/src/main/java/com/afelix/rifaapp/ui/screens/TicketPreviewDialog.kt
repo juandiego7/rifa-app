@@ -22,6 +22,7 @@ import java.net.URLEncoder
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.ui.graphics.Color
+import com.afelix.rifaapp.ui.components.AdBanner
 
 @Composable
 fun TicketPreviewDialog(
@@ -119,6 +120,9 @@ fun TicketPreviewDialog(
                     ) {
                         Text("Cerrar")
                     }
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    AdBanner()
                 }
             }
         }

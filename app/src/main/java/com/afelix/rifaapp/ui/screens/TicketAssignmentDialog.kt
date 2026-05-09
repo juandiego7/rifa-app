@@ -34,6 +34,7 @@ import com.afelix.rifaapp.core.util.CountryService
 import com.afelix.rifaapp.domain.model.Raffle
 import com.afelix.rifaapp.domain.model.Ticket
 import com.afelix.rifaapp.domain.model.TicketStatus
+import com.afelix.rifaapp.ui.components.AdBanner
 import java.net.URLEncoder
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
@@ -193,6 +194,7 @@ fun TicketAssignmentDialog(
                         showName = false
                     )
                 } else {
+                    // Show a compact list of all selected numbers
                     FlowRow(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center,
@@ -339,6 +341,10 @@ fun TicketAssignmentDialog(
                             modifier = Modifier.padding(horizontal = 4.dp)
                         )
                     }
+                    
+                    // Add Banner at bottom of scrollable content
+                    Spacer(modifier = Modifier.height(16.dp))
+                    AdBanner()
                 }
             }
         },
@@ -347,13 +353,13 @@ fun TicketAssignmentDialog(
                 // Solo mostramos compartir si el estado no es Disponible y hay datos de contacto
                 if (status != TicketStatus.AVAILABLE && name.isNotBlank() && phoneNumber.isNotBlank()) {
                     IconButton(
-                        onClick = shareWhatsApp,
+                        onClick = { shareWhatsApp() },
                         modifier = Modifier.padding(end = 4.dp)
                     ) {
                         Icon(Icons.Default.Share, contentDescription = "Directo a WhatsApp", tint = Color(0xFF25D366))
                     }
                     IconButton(
-                        onClick = shareUniversal,
+                        onClick = { shareUniversal() },
                         modifier = Modifier.padding(end = 8.dp)
                     ) {
                         Icon(Icons.Default.Share, contentDescription = "Compartir en cualquier app", tint = MaterialTheme.colorScheme.primary)
