@@ -239,37 +239,38 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
             ) {
                 Text(
                     text = "Sorteo: ${DateFormatter.format(raffle.drawDate)}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray,
-                    fontSize = 10.sp
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.DarkGray,
+                    fontWeight = FontWeight.Medium
                 )
                 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Surface(
                         color = if (raffle.status == RaffleStatus.ACTIVE) Color(0xFFE3F2FD) else Color(0xFFF5F5F5),
-                        shape = RoundedCornerShape(4.dp)
+                        shape = RoundedCornerShape(6.dp)
                     ) {
                         Text(
                             text = if (raffle.status == RaffleStatus.ACTIVE) "ACTIVA" else "CERRADA",
-                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontSize = 8.sp,
-                            fontWeight = FontWeight.Black,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            style = MaterialTheme.typography.labelLarge,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.ExtraBold,
                             color = if (raffle.status == RaffleStatus.ACTIVE) Color(0xFF1976D2) else Color.Gray
                         )
                     }
                     
-                    Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(modifier = Modifier.width(16.dp))
                     
-                    TextButton(
+                    IconButton(
                         onClick = onDelete,
-                        modifier = Modifier.height(28.dp),
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
-                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                        modifier = Modifier.size(32.dp)
                     ) {
-                        Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(14.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Eliminar", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                        Icon(
+                            Icons.Default.Delete, 
+                            contentDescription = "Eliminar", 
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(24.dp)
+                        )
                     }
                 }
             }

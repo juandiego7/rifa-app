@@ -308,7 +308,8 @@ fun DashboardSection(
                     label = "Vendidas",
                     value = stats.soldTickets.toString(),
                     color = Color.Black,
-                    backgroundColor = Color(0xFF81C784)
+                    backgroundColor = Color(0xFF81C784),
+                    isLarge = true
                 )
                 CompactInfoCard(
                     modifier = Modifier.weight(1f),
@@ -316,7 +317,8 @@ fun DashboardSection(
                     label = "Reservadas",
                     value = stats.reservedTickets.toString(),
                     color = Color.Black,
-                    backgroundColor = Color(0xFFFFD54F)
+                    backgroundColor = Color(0xFFFFD54F),
+                    isLarge = true
                 )
                 CompactInfoCard(
                     modifier = Modifier.weight(1f),
@@ -324,7 +326,8 @@ fun DashboardSection(
                     label = "Disponibles",
                     value = stats.availableTickets.toString(),
                     color = Color.Black,
-                    backgroundColor = MaterialTheme.colorScheme.surfaceVariant
+                    backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
+                    isLarge = true
                 )
             }
         }
@@ -338,7 +341,8 @@ fun CompactInfoCard(
     label: String,
     value: String,
     color: Color,
-    backgroundColor: Color
+    backgroundColor: Color,
+    isLarge: Boolean = false
 ) {
     Surface(
         modifier = modifier,
@@ -346,15 +350,27 @@ fun CompactInfoCard(
         shape = RoundedCornerShape(8.dp)
     ) {
         Column(
-            modifier = Modifier.padding(6.dp),
+            modifier = Modifier.padding(vertical = if (isLarge) 8.dp else 6.dp, horizontal = 4.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(12.dp))
+                Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(if (isLarge) 16.dp else 12.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(text = label, style = MaterialTheme.typography.labelSmall, fontSize = 8.sp, color = color.copy(alpha = 0.8f))
+                Text(
+                    text = label, 
+                    style = MaterialTheme.typography.labelSmall, 
+                    fontSize = if (isLarge) 11.sp else 8.sp, 
+                    color = color.copy(alpha = 0.8f),
+                    fontWeight = FontWeight.Bold
+                )
             }
-            Text(text = value, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, color = color, fontSize = 10.sp)
+            Text(
+                text = value, 
+                style = MaterialTheme.typography.bodySmall, 
+                fontWeight = FontWeight.Black, 
+                color = color, 
+                fontSize = if (isLarge) 14.sp else 10.sp
+            )
         }
     }
 }
