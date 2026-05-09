@@ -248,7 +248,7 @@ fun ControlRow(label: String, checked: Boolean, onCheckedChange: (Boolean) -> Un
 @Composable
 fun MarketingStat(label: String, value: String, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(label, fontSize = 8.sp, color = Color.Gray, fontWeight = FontWeight.Bold)
-        Text(value, fontSize = 12.sp, color = color, fontWeight = FontWeight.Black)
+        Text(label, fontSize = 11.sp, color = Color.Gray, fontWeight = FontWeight.ExtraBold)
+        Text(value, fontSize = 18.sp, color = color, fontWeight = FontWeight.Black)
     }
 }
