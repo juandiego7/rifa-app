@@ -74,13 +74,18 @@ fun TicketAssignmentDialog(
         ) 
     }
     
-    // Default to RESERVED if multiple tickets (different owners) or if first ticket is available
+    // Default to RESERVED if assigning new tickets, or keep current status if editing
     val allSameStatus = tickets.map { it.status }.distinct().size == 1
-    val initialStatus = if ((sameOwner || tickets.size == 1) && firstTicket?.status != TicketStatus.AVAILABLE) {
-        firstTicket?.status ?: TicketStatus.RESERVED
+    val isAnyAvailable = tickets.any { it.status == TicketStatus.AVAILABLE }
+    
+    val initialStatus = if (isAnyAvailable) {
+        // If any ticket is available, we are likely assigning, so default to RESERVED
+        TicketStatus.RESERVED
     } else if (allSameStatus) {
+        // If all have the same status (and none are available), keep that status
         tickets.first().status
     } else {
+        // Mixed statuses (already assigned), default to RESERVED for safety
         TicketStatus.RESERVED
     }
     var status by remember { mutableStateOf(initialStatus) }
