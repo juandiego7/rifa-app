@@ -64,7 +64,10 @@ fun RaffleListScreen(
             TopAppBar(
                 title = { Text("Mis Rifas") },
                 actions = {
-                    IconButton(onClick = onCreateRaffleClick) {
+                    IconButton(
+                        onClick = onCreateRaffleClick,
+                        modifier = Modifier.padding(end = 12.dp) // Aumentamos el margen a la derecha
+                    ) {
                         Icon(Icons.Default.Add, contentDescription = "Crear Rifa")
                     }
                 }

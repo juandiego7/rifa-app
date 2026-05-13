@@ -123,7 +123,10 @@ fun RaffleDetailScreen(
                         IconButton(onClick = onMarketingClick) {
                             Icon(Icons.Default.Image, contentDescription = "Compartir Publicidad")
                         }
-                        IconButton(onClick = { isGridView = !isGridView }) {
+                        IconButton(
+                            onClick = { isGridView = !isGridView },
+                            modifier = Modifier.padding(end = 12.dp) // Alineamos con la pantalla principal
+                        ) {
                             Icon(
                                 imageVector = if (isGridView) Icons.AutoMirrored.Filled.List else Icons.Default.GridView,
                                 contentDescription = if (isGridView) "Vista de Lista" else "Vista de Cuadrícula"
