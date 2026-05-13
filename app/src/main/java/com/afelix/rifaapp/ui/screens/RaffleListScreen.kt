@@ -61,12 +61,14 @@ fun RaffleListScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Mis Rifas") })
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = onCreateRaffleClick) {
-                Icon(Icons.Default.Add, contentDescription = "Crear Rifa")
-            }
+            TopAppBar(
+                title = { Text("Mis Rifas") },
+                actions = {
+                    IconButton(onClick = onCreateRaffleClick) {
+                        Icon(Icons.Default.Add, contentDescription = "Crear Rifa")
+                    }
+                }
+            )
         }
     ) { padding ->
         LazyColumn(
