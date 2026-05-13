@@ -70,7 +70,7 @@ class MainActivity : ComponentActivity() {
                     NavHost(
                         navController = navController, 
                         startDestination = "list",
-                        modifier = Modifier.padding(padding)
+                        modifier = Modifier.padding(bottom = padding.calculateBottomPadding())
                     ) {
                         composable("list") {
                             val raffles by viewModel.raffles.collectAsState()
