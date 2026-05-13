@@ -64,7 +64,15 @@ fun RaffleDetailScreen(
             selectedTickets.map { it.customerPhone }.distinct().size == 1
 
     var winnerCaptureView by remember { mutableStateOf<View?>(null) }
+    var searchQuery by remember { mutableStateOf("") }
     
+    val filteredTickets = tickets.filter { ticket ->
+        val formattedNumber = ticket.number.toString().padStart(raffle.digits, '0')
+        searchQuery.isBlank() || 
+        formattedNumber.contains(searchQuery) || 
+        (ticket.customerName?.contains(searchQuery, ignoreCase = true) == true)
+    }
+
     val shareWinnerImage: () -> Unit = {
         winnerCaptureView?.let {
             val bitmap = ImageSharing.captureView(it)
@@ -144,6 +152,31 @@ fun RaffleDetailScreen(
                     stats = stats, 
                     onShareWinner = { shareWinnerImage() }
                 )
+
+                // Search Bar
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder = { Text("Buscar por número o nombre...", fontSize = 14.sp) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    leadingIcon = { Icon(Icons.Default.Search, null, modifier = Modifier.size(20.dp)) },
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { searchQuery = "" }) {
+                                Icon(Icons.Default.Close, null, modifier = Modifier.size(20.dp))
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp)
+                )
                 
                 LazyVerticalGrid(
                     columns = if (isGridView) GridCells.Adaptive(minSize = 44.dp) else GridCells.Fixed(2),
@@ -152,7 +185,7 @@ fun RaffleDetailScreen(
                     verticalArrangement = Arrangement.spacedBy(if (isGridView) 2.dp else 4.dp),
                     modifier = Modifier.weight(1f)
                 ) {
-                    items(tickets) { ticket ->
+                    items(filteredTickets) { ticket ->
                         val isSelected = ticket.id in selectedIds
                         if (isGridView) {
                             TicketCircle(
