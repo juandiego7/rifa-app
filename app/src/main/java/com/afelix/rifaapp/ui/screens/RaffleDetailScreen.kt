@@ -65,6 +65,7 @@ fun RaffleDetailScreen(
 
     var winnerCaptureView by remember { mutableStateOf<View?>(null) }
     var searchQuery by remember { mutableStateOf("") }
+    var isSearchExpanded by remember { mutableStateOf(false) }
     
     val filteredTickets = tickets.filter { ticket ->
         val formattedNumber = ticket.number.toString().padStart(raffle.digits, '0')
@@ -128,6 +129,12 @@ fun RaffleDetailScreen(
                                 Icon(Icons.Default.Casino, contentDescription = "Realizar Sorteo", tint = MaterialTheme.colorScheme.primary)
                             }
                         }
+                        IconButton(onClick = { isSearchExpanded = !isSearchExpanded }) {
+                            Icon(
+                                imageVector = if (isSearchExpanded) Icons.Default.SearchOff else Icons.Default.Search,
+                                contentDescription = "Buscar"
+                            )
+                        }
                         IconButton(onClick = onMarketingClick) {
                             Icon(Icons.Default.Image, contentDescription = "Compartir Publicidad")
                         }
@@ -153,30 +160,33 @@ fun RaffleDetailScreen(
                     onShareWinner = { shareWinnerImage() }
                 )
 
-                // Search Bar
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    placeholder = { Text("Buscar por número o nombre...", fontSize = 14.sp) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                    leadingIcon = { Icon(Icons.Default.Search, null, modifier = Modifier.size(20.dp)) },
-                    trailingIcon = {
-                        if (searchQuery.isNotEmpty()) {
-                            IconButton(onClick = { searchQuery = "" }) {
+                // Search Bar (Toggleable)
+                if (isSearchExpanded) {
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = { Text("Buscar por número o nombre...", fontSize = 14.sp) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        leadingIcon = { Icon(Icons.Default.Search, null, modifier = Modifier.size(20.dp)) },
+                        trailingIcon = {
+                            IconButton(onClick = { 
+                                searchQuery = ""
+                                isSearchExpanded = false
+                            }) {
                                 Icon(Icons.Default.Close, null, modifier = Modifier.size(20.dp))
                             }
-                        }
-                    },
-                    singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surface
-                    ),
-                    textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp)
-                )
+                        },
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surface,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                        ),
+                        textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp)
+                    )
+                }
                 
                 LazyVerticalGrid(
                     columns = if (isGridView) GridCells.Adaptive(minSize = 44.dp) else GridCells.Fixed(2),
