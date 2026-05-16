@@ -31,6 +31,7 @@ class FirebaseRaffleRepository {
             "drawDate" to raffle.drawDate,
             "status" to raffle.status.name,
             "winningNumber" to raffle.winningNumber,
+            "createdAt" to raffle.createdAt,
             "ownerId" to (raffle.userId ?: user.uid),
             "ownerEmail" to (raffle.ownerEmail ?: user.email),
             "lastUpdated" to FieldValue.serverTimestamp()
@@ -84,7 +85,8 @@ class FirebaseRaffleRepository {
             winningNumber = snapshot.getLong("winningNumber")?.toInt(),
             userId = snapshot.getString("ownerId"),
             cloudId = cloudId,
-            ownerEmail = snapshot.getString("ownerEmail")
+            ownerEmail = snapshot.getString("ownerEmail"),
+            createdAt = snapshot.getLong("createdAt") ?: 0L
         )
         
         val ticketsSnapshot = docRef.collection("tickets").get().await()
@@ -134,7 +136,8 @@ class FirebaseRaffleRepository {
                     winningNumber = doc.getLong("winningNumber")?.toInt(),
                     userId = doc.getString("ownerId") ?: user.uid,
                     cloudId = cloudId,
-                    ownerEmail = doc.getString("ownerEmail") ?: user.email
+                    ownerEmail = doc.getString("ownerEmail") ?: user.email,
+                    createdAt = doc.getLong("createdAt") ?: 0L
                 )
                 
                 // Fetch tickets (Works for both old and new structure as they use the same subcollection name)

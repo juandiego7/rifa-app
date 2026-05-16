@@ -10,11 +10,11 @@ data class Raffle(
     val prizeValue: Double,
     val drawDate: Long,
     val status: RaffleStatus = RaffleStatus.ACTIVE,
-    val winningNumber: Int? = null,
     val stats: RaffleDashboardStats? = null,
     val userId: String? = null, // Owner ID (local backup ref)
     val cloudId: String? = null, // Unique Firestore ID for sharing
-    val ownerEmail: String? = null // For display purposes
+    val ownerEmail: String? = null, // For display purposes
+    val createdAt: Long = System.currentTimeMillis() // Unique creation timestamp
 )
 
 enum class RaffleStatus {
