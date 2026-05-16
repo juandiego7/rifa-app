@@ -131,7 +131,10 @@ object PdfExporter {
         
         try {
             val fileName = "Reporte_${raffle.title.replace(" ", "_")}.pdf"
-            val file = File(context.cacheDir, fileName)
+            val reportsDir = File(context.cacheDir, "reports")
+            if (!reportsDir.exists()) reportsDir.mkdirs()
+            
+            val file = File(reportsDir, fileName)
             val outputStream = FileOutputStream(file)
             pdfDocument.writeTo(outputStream)
             pdfDocument.close()

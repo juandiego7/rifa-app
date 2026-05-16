@@ -64,8 +64,10 @@ class AuthViewModel : ViewModel() {
                 auth.signInWithCredential(firebaseCredential)
                 _authState.value = AuthState.Authenticated
             } catch (e: Exception) {
-                _authState.value = AuthState.Error(e.message ?: "Error al autenticar con Firebase")
+                _authState.value = AuthState.Error("Fallo en Firebase: ${e.message}")
             }
+        } else {
+            _authState.value = AuthState.Error("Tipo de credencial no soportado")
         }
     }
 
