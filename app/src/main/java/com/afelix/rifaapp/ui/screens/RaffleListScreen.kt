@@ -26,6 +26,7 @@ import com.afelix.rifaapp.core.util.CurrencyFormatter
 import com.afelix.rifaapp.core.util.DateFormatter
 import com.afelix.rifaapp.domain.model.Raffle
 import com.afelix.rifaapp.domain.model.RaffleStatus
+import com.afelix.rifaapp.ui.viewmodel.AuthState
 import com.afelix.rifaapp.ui.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -64,8 +65,10 @@ fun RaffleListScreen(
         )
     }
 
-    val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
-    val currentUser = auth.currentUser
+    val authState by authViewModel.authState.collectAsState()
+    val currentUser = if (authState is AuthState.Authenticated) {
+        com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+    } else null
 
     Scaffold(
         topBar = {
