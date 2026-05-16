@@ -193,7 +193,11 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
 
     fun sendInvitation(raffleId: String, raffleTitle: String, email: String) {
         viewModelScope.launch {
-            firebaseRepository.sendInvitation(raffleId, raffleTitle, email)
+            try {
+                firebaseRepository.sendInvitation(raffleId, raffleTitle, email)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
