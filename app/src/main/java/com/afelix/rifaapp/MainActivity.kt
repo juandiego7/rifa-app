@@ -62,6 +62,12 @@ class MainActivity : ComponentActivity() {
                 val authState by authViewModel.authState.collectAsState()
                 val startDestination = if (authState is AuthState.Authenticated || authState is AuthState.Guest) "list" else "auth"
 
+                LaunchedEffect(authState) {
+                    if (authState is AuthState.Authenticated) {
+                        viewModel.syncAllToCloud()
+                    }
+                }
+
                 var ticketsToAssign by remember { mutableStateOf<List<Ticket>?>(null) }
                 var ticketsToPreview by remember { mutableStateOf<List<Ticket>?>(null) }
 
@@ -88,6 +94,7 @@ class MainActivity : ComponentActivity() {
                             AuthScreen(
                                 viewModel = authViewModel,
                                 onAuthSuccess = {
+                                    viewModel.syncAllToCloud() // Backup local data to cloud on login
                                     navController.navigate("list") {
                                         popUpTo("auth") { inclusive = true }
                                     }

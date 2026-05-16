@@ -10,12 +10,17 @@ import com.afelix.rifaapp.domain.repository.RaffleRepository
 import com.afelix.rifaapp.domain.usecase.CreateRaffleUseCase
 import com.afelix.rifaapp.domain.usecase.GetRaffleDashboardStatsUseCase
 import com.afelix.rifaapp.domain.usecase.GetRafflesUseCase
+import com.afelix.rifaapp.data.remote.FirebaseRaffleRepository
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
+
+    private val firebaseRepository = FirebaseRaffleRepository()
+    private val auth = FirebaseAuth.getInstance()
 
     private val getRafflesUseCase = GetRafflesUseCase(repository)
     private val createRaffleUseCase = CreateRaffleUseCase(repository)
@@ -56,25 +61,34 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
 
     fun createRaffle(raffle: Raffle) {
         viewModelScope.launch {
-            createRaffleUseCase(raffle)
+            val raffleWithUser = raffle.copy(userId = auth.currentUser?.uid)
+            val id = createRaffleUseCase(raffleWithUser)
+            syncToCloud(id)
         }
     }
 
     fun updateTicket(ticket: Ticket) {
         viewModelScope.launch {
             repository.updateTicket(ticket)
+            syncToCloud(ticket.raffleId)
         }
     }
 
     fun updateTickets(tickets: List<Ticket>) {
         viewModelScope.launch {
             repository.updateTickets(tickets)
+            if (tickets.isNotEmpty()) {
+                syncToCloud(tickets.first().raffleId)
+            }
         }
     }
 
     fun deleteRaffle(raffle: Raffle) {
         viewModelScope.launch {
             repository.deleteRaffle(raffle)
+            if (auth.currentUser != null) {
+                firebaseRepository.deleteRaffle(raffle.id)
+            }
         }
     }
 
@@ -86,6 +100,29 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
             )
             repository.updateRaffle(updatedRaffle)
             _selectedRaffle.value = updatedRaffle
+            syncToCloud(raffle.id)
+        }
+    }
+
+    fun syncAllToCloud() {
+        if (auth.currentUser == null) return
+        viewModelScope.launch {
+            repository.getRaffles().first().forEach { raffle ->
+                val tickets = repository.getTicketsByRaffleId(raffle.id).first()
+                firebaseRepository.syncRaffle(raffle, tickets)
+            }
+        }
+    }
+
+    private fun syncToCloud(raffleId: Long) {
+        if (auth.currentUser == null) return
+        
+        viewModelScope.launch {
+            val raffle = repository.getRaffleById(raffleId)
+            val tickets = repository.getTicketsByRaffleId(raffleId).first()
+            if (raffle != null) {
+                firebaseRepository.syncRaffle(raffle, tickets)
+            }
         }
     }
 }

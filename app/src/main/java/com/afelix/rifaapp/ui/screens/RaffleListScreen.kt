@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -63,13 +64,36 @@ fun RaffleListScreen(
         )
     }
 
+    val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
+    val currentUser = auth.currentUser
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Mis Rifas") },
+                title = { 
+                    Column {
+                        Text("Mis Rifas")
+                        if (currentUser != null) {
+                            Text(
+                                text = currentUser.email ?: "",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        } else {
+                            Text(
+                                text = "Modo Invitado",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.Gray
+                            )
+                        }
+                    }
+                },
                 actions = {
                     IconButton(onClick = onLogout) {
-                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Cerrar Sesión")
+                        Icon(
+                            imageVector = if (currentUser != null) Icons.AutoMirrored.Filled.Logout else Icons.AutoMirrored.Filled.Login,
+                            contentDescription = if (currentUser != null) "Cerrar Sesión" else "Iniciar Sesión"
+                        )
                     }
                     IconButton(
                         onClick = onCreateRaffleClick,

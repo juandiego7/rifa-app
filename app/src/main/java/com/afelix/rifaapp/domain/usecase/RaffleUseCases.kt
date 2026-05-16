@@ -13,12 +13,13 @@ class GetRafflesUseCase(private val repository: RaffleRepository) {
 }
 
 class CreateRaffleUseCase(private val repository: RaffleRepository) {
-    suspend operator fun invoke(raffle: Raffle) {
+    suspend operator fun invoke(raffle: Raffle): Long {
         val raffleId = repository.insertRaffle(raffle)
         val tickets = (0 until raffle.maxNumber).map {
             Ticket(raffleId = raffleId, number = it)
         }
         repository.insertTickets(tickets)
+        return raffleId
     }
 }
 

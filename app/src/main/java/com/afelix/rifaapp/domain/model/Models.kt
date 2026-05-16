@@ -11,7 +11,8 @@ data class Raffle(
     val drawDate: Long,
     val status: RaffleStatus = RaffleStatus.ACTIVE,
     val winningNumber: Int? = null,
-    val stats: RaffleDashboardStats? = null
+    val stats: RaffleDashboardStats? = null,
+    val userId: String? = null // To identify which user owns this raffle
 )
 
 enum class RaffleStatus {
