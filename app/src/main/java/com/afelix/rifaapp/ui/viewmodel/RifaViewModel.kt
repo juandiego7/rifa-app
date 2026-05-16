@@ -28,6 +28,16 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
 
     private val _userFilter = MutableStateFlow<String?>(auth.currentUser?.uid)
 
+    init {
+        // Listen to Auth changes to update filter automatically
+        auth.addAuthStateListener { firebaseAuth ->
+            _userFilter.value = firebaseAuth.currentUser?.uid
+            if (firebaseAuth.currentUser != null) {
+                syncAllToCloud()
+            }
+        }
+    }
+
     val raffles: StateFlow<List<Raffle>> = _userFilter.flatMapLatest { userId ->
         getRafflesUseCase(userId).flatMapLatest { raffleList ->
             if (raffleList.isEmpty()) return@flatMapLatest flowOf(emptyList<Raffle>())
@@ -122,11 +132,16 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
             
             // Then, fetch everything from cloud to local to ensure we have cloud-only data
             val cloudRaffles = firebaseRepository.fetchAllRaffles()
-            cloudRaffles.forEach { (raffle, tickets) ->
+            cloudRaffles.forEach { (raffle, cloudTickets) ->
                 // Save/Update in local Room
                 val localId = repository.insertRaffle(raffle.copy(userId = auth.currentUser?.uid))
-                // For tickets, we need to ensure the raffleId matches the local one
-                repository.insertTickets(tickets.map { it.copy(raffleId = localId) })
+                
+                // RECONSTRUCT FULL TICKET LIST:
+                // We need the full grid (maxNumber), merging assigned cloud tickets with available ones
+                val fullTickets = (0 until raffle.maxNumber).map { number ->
+                    cloudTickets.find { it.number == number } ?: Ticket(raffleId = localId, number = number)
+                }
+                repository.insertTickets(fullTickets)
             }
         }
     }
