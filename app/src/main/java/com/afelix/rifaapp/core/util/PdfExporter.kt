@@ -2,7 +2,6 @@ package com.afelix.rifaapp.core.util
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Typeface
@@ -11,8 +10,6 @@ import androidx.core.content.FileProvider
 import com.afelix.rifaapp.domain.model.Raffle
 import com.afelix.rifaapp.domain.model.Ticket
 import com.afelix.rifaapp.domain.model.TicketStatus
-import com.afelix.rifaapp.core.util.CurrencyFormatter
-import com.afelix.rifaapp.core.util.DateFormatter
 import java.io.File
 import java.io.FileOutputStream
 
@@ -20,18 +17,18 @@ object PdfExporter {
 
     fun exportRaffleToPdf(context: Context, raffle: Raffle, tickets: List<Ticket>) {
         val pdfDocument = PdfDocument()
-        
-        // Page configuration (A4 size: 595 x 842 points)
-        val pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
-        val page = pdfDocument.startPage(pageInfo)
-        val canvas = page.canvas
         val paint = Paint()
         val textPaint = Paint()
         
         val startX = 40f
         var currentY = 50f
         
-        // --- Header ---
+        // --- Page 1 ---
+        var pageInfo = PdfDocument.PageInfo.Builder(595, 842, 1).create()
+        var page = pdfDocument.startPage(pageInfo)
+        var canvas = page.canvas
+        
+        // Header
         textPaint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         textPaint.textSize = 20f
         textPaint.color = Color.BLACK
@@ -55,7 +52,7 @@ object PdfExporter {
         paint.color = Color.LTGRAY
         canvas.drawLine(startX, currentY, 555f, currentY, paint)
         
-        // --- Summary ---
+        // Summary
         currentY += 25f
         textPaint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         textPaint.textSize = 14f
@@ -79,7 +76,7 @@ object PdfExporter {
         paint.color = Color.LTGRAY
         canvas.drawLine(startX, currentY, 555f, currentY, paint)
         
-        // --- Ticket Table Header ---
+        // Table Header
         currentY += 30f
         textPaint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
         canvas.drawText("No.", startX, currentY, textPaint)
@@ -90,19 +87,33 @@ object PdfExporter {
         currentY += 10f
         canvas.drawLine(startX, currentY, 555f, currentY, paint)
         
-        // --- Ticket Data ---
+        // Data
         textPaint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
         val assignedTickets = tickets.filter { it.status != TicketStatus.AVAILABLE }
             .sortedBy { it.number }
             
+        var pageNumber = 1
         for (ticket in assignedTickets) {
             currentY += 20f
             
-            // Check if we need a new page
             if (currentY > 800f) {
                 pdfDocument.finishPage(page)
-                // In a real app we would start a new page here, but for now let's keep it simple
-                break 
+                pageNumber++
+                pageInfo = PdfDocument.PageInfo.Builder(595, 842, pageNumber).create()
+                page = pdfDocument.startPage(pageInfo)
+                canvas = page.canvas
+                currentY = 50f
+                
+                // Re-draw table header on new page
+                textPaint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+                canvas.drawText("No.", startX, currentY, textPaint)
+                canvas.drawText("Cliente", startX + 50f, currentY, textPaint)
+                canvas.drawText("Teléfono", startX + 250f, currentY, textPaint)
+                canvas.drawText("Estado", startX + 420f, currentY, textPaint)
+                currentY += 10f
+                canvas.drawLine(startX, currentY, 555f, currentY, paint)
+                textPaint.typeface = Typeface.create(Typeface.DEFAULT, Typeface.NORMAL)
+                currentY += 20f
             }
             
             val numStr = ticket.number.toString().padStart(raffle.digits, '0')
@@ -118,7 +129,6 @@ object PdfExporter {
         
         pdfDocument.finishPage(page)
         
-        // Save and Share
         try {
             val fileName = "Reporte_${raffle.title.replace(" ", "_")}.pdf"
             val file = File(context.cacheDir, fileName)
