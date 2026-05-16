@@ -122,34 +122,39 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
         if (auth.currentUser == null) return
         _userFilter.value = auth.currentUser?.uid
         viewModelScope.launch {
-            // Push local data
-            repository.getAllRaffles().first().forEach { raffle ->
-                val tickets = repository.getTicketsByRaffleId(raffle.id).first()
-                val cloudId = firebaseRepository.syncRaffle(raffle, tickets)
-                if (raffle.cloudId == null) {
-                    repository.updateRaffle(raffle.copy(cloudId = cloudId))
-                }
-            }
-            
-            // Pull cloud data
-            val cloudRaffles = firebaseRepository.fetchAllUserRaffles()
-            cloudRaffles.forEach { (cloudRaffle, cloudTickets) ->
-                // Check if we already have it locally via cloudId
-                val existingLocal = cloudRaffle.cloudId?.let { repository.getRaffleByCloudId(it) }
-                
-                val raffleToInsert = if (existingLocal != null) {
-                    cloudRaffle.copy(id = existingLocal.id)
-                } else {
-                    cloudRaffle
+            try {
+                // Push local data
+                repository.getAllRaffles().first().forEach { raffle ->
+                    val tickets = repository.getTicketsByRaffleId(raffle.id).first()
+                    val cloudId = firebaseRepository.syncRaffle(raffle, tickets)
+                    if (raffle.cloudId == null) {
+                        repository.updateRaffle(raffle.copy(cloudId = cloudId))
+                    }
                 }
                 
-                val localId = repository.insertRaffle(raffleToInsert)
-                
-                // Reconstruct full ticket list
-                val fullTickets = (0 until raffleToInsert.maxNumber).map { number ->
-                    cloudTickets.find { it.number == number } ?: Ticket(raffleId = localId, number = number)
+                // Pull cloud data
+                val cloudRaffles = firebaseRepository.fetchAllUserRaffles()
+                cloudRaffles.forEach { (cloudRaffle, cloudTickets) ->
+                    // Check if we already have it locally via cloudId
+                    val existingLocal = cloudRaffle.cloudId?.let { repository.getRaffleByCloudId(it) }
+                    
+                    val raffleToInsert = if (existingLocal != null) {
+                        cloudRaffle.copy(id = existingLocal.id)
+                    } else {
+                        cloudRaffle
+                    }
+                    
+                    val localId = repository.insertRaffle(raffleToInsert)
+                    
+                    // Reconstruct full ticket list
+                    val fullTickets = (0 until raffleToInsert.maxNumber).map { number ->
+                        cloudTickets.find { it.number == number } ?: Ticket(raffleId = localId, number = number)
+                    }
+                    repository.insertTickets(fullTickets)
                 }
-                repository.insertTickets(fullTickets)
+            } catch (e: Exception) {
+                // Si falla la nube por permisos, al menos no se cierra la app
+                e.printStackTrace()
             }
         }
     }
