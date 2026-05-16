@@ -43,7 +43,9 @@ fun RaffleListScreen(
     onLogout: () -> Unit,
     onJoinRaffle: (String) -> Unit,
     pendingInvitations: List<Map<String, Any>>,
-    onInvitationResponse: (String, Boolean) -> Unit
+    onInvitationResponse: (String, Boolean) -> Unit,
+    onQuickPdf: (Raffle) -> Unit,
+    onQuickMarketing: (Raffle) -> Unit
 ) {
     var raffleToDelete by remember { mutableStateOf<Raffle?>(null) }
     var showJoinDialog by remember { mutableStateOf(false) }
@@ -234,7 +236,9 @@ fun RaffleListScreen(
                     RaffleItem(
                         raffle = raffle,
                         onClick = { onRaffleClick(raffle) },
-                        onDelete = { raffleToDelete = raffle }
+                        onDelete = { raffleToDelete = raffle },
+                        onPdf = { onQuickPdf(raffle) },
+                        onMarketing = { onQuickMarketing(raffle) }
                     )
                 }
             }
@@ -243,7 +247,13 @@ fun RaffleListScreen(
 }
 
 @Composable
-fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
+fun RaffleItem(
+    raffle: Raffle, 
+    onClick: () -> Unit, 
+    onDelete: () -> Unit,
+    onPdf: () -> Unit,
+    onMarketing: () -> Unit
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -275,6 +285,34 @@ fun RaffleItem(raffle: Raffle, onClick: () -> Unit, onDelete: () -> Unit) {
                         Icons.Default.Delete, 
                         contentDescription = "Eliminar", 
                         tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                
+                Spacer(modifier = Modifier.width(8.dp))
+                
+                IconButton(
+                    onClick = onPdf,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        Icons.Default.PictureAsPdf, 
+                        contentDescription = "PDF", 
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                
+                Spacer(modifier = Modifier.width(8.dp))
+                
+                IconButton(
+                    onClick = onMarketing,
+                    modifier = Modifier.size(32.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Image, 
+                        contentDescription = "Marketing", 
+                        tint = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.size(24.dp)
                     )
                 }

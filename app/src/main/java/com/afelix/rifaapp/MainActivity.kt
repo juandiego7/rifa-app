@@ -19,6 +19,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
 import com.google.firebase.FirebaseApp
 import com.google.firebase.firestore.FirebaseFirestore
+import com.afelix.rifaapp.core.util.PdfExporter
 import com.afelix.rifaapp.data.local.RaffleDatabase
 import com.afelix.rifaapp.data.repository.RaffleRepositoryImpl
 import com.afelix.rifaapp.domain.model.Ticket
@@ -134,6 +135,15 @@ class MainActivity : ComponentActivity() {
                                 pendingInvitations = viewModel.pendingInvitations.collectAsState().value,
                                 onInvitationResponse = { id, accept ->
                                     viewModel.respondToInvitation(id, accept)
+                                },
+                                onQuickPdf = { raffle ->
+                                    // Sincronizamos tickets y exportamos
+                                    viewModel.selectRaffle(raffle)
+                                    PdfExporter.exportRaffleToPdf(applicationContext, raffle, viewModel.tickets.value)
+                                },
+                                onQuickMarketing = { raffle ->
+                                    viewModel.selectRaffle(raffle)
+                                    navController.navigate("marketing")
                                 }
                             )
                         }

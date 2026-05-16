@@ -6,6 +6,8 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -58,6 +60,7 @@ fun RaffleDetailScreen(
     val context = LocalContext.current
     var selectedIds by remember { mutableStateOf(emptySet<Long>()) }
     var isGridView by remember { mutableStateOf(true) }
+    var selectedTabIndex by remember { mutableIntStateOf(0) }
     val isSelectionMode = selectedIds.isNotEmpty()
     
     val selectedTickets = tickets.filter { it.id in selectedIds }
@@ -127,169 +130,229 @@ fun RaffleDetailScreen(
                         }
                     },
                     actions = {
-                        if (raffle.status == RaffleStatus.ACTIVE) {
-                            IconButton(onClick = onDrawWinner) {
-                                Icon(Icons.Default.Casino, contentDescription = "Realizar Sorteo", tint = MaterialTheme.colorScheme.primary)
-                            }
-                        }
-                        if (raffle.cloudId != null) {
-                            var showInviteDialog by remember { mutableStateOf(false) }
-                            var inviteEmail by remember { mutableStateOf("") }
-                            
-                            if (showInviteDialog) {
-                                AlertDialog(
-                                    onDismissRequest = { showInviteDialog = false },
-                                    title = { Text("Invitar Colaborador") },
-                                    text = {
-                                        Column {
-                                            Text("Ingresa el correo de la persona que te ayudará a vender:")
-                                            Spacer(Modifier.height(8.dp))
-                                            OutlinedTextField(
-                                                value = inviteEmail,
-                                                onValueChange = { inviteEmail = it },
-                                                label = { Text("Correo Electrónico") },
-                                                modifier = Modifier.fillMaxWidth()
-                                            )
-                                        }
-                                    },
-                                    confirmButton = {
-                                        TextButton(
-                                            enabled = inviteEmail.isNotBlank(),
-                                            onClick = {
-                                                // Call ViewModel's sendInvitation
-                                                // (We will handle this passing the lambda)
-                                                onInviteCollaborator(inviteEmail)
-                                                showInviteDialog = false
-                                                inviteEmail = ""
-                                            }
-                                        ) { Text("Enviar Invitación") }
-                                    },
-                                    dismissButton = {
-                                        TextButton(onClick = { showInviteDialog = false }) { Text("Cancelar") }
-                                    }
+                        if (selectedTabIndex == 0) {
+                            IconButton(onClick = { isSearchExpanded = !isSearchExpanded }) {
+                                Icon(
+                                    imageVector = if (isSearchExpanded) Icons.Default.SearchOff else Icons.Default.Search,
+                                    contentDescription = "Buscar"
                                 )
                             }
-                            
-                            IconButton(onClick = { showInviteDialog = true }) {
-                                Icon(Icons.Default.PersonAdd, contentDescription = "Invitar Colaborador")
+                            IconButton(
+                                onClick = { isGridView = !isGridView },
+                                modifier = Modifier.padding(end = 12.dp)
+                            ) {
+                                Icon(
+                                    imageVector = if (isGridView) Icons.AutoMirrored.Filled.List else Icons.Default.GridView,
+                                    contentDescription = if (isGridView) "Vista de Lista" else "Vista de Cuadrícula"
+                                )
                             }
-                        }
-                        IconButton(onClick = { isSearchExpanded = !isSearchExpanded }) {
-                            Icon(
-                                imageVector = if (isSearchExpanded) Icons.Default.SearchOff else Icons.Default.Search,
-                                contentDescription = "Buscar"
-                            )
-                        }
-                        IconButton(onClick = { PdfExporter.exportRaffleToPdf(context, raffle, tickets) }) {
-                            Icon(Icons.Default.PictureAsPdf, contentDescription = "Exportar Reporte PDF")
-                        }
-                        IconButton(onClick = onMarketingClick) {
-                            Icon(Icons.Default.Image, contentDescription = "Compartir Publicidad")
-                        }
-                        IconButton(
-                            onClick = { isGridView = !isGridView },
-                            modifier = Modifier.padding(end = 12.dp) // Alineamos con la pantalla principal
-                        ) {
-                            Icon(
-                                imageVector = if (isGridView) Icons.AutoMirrored.Filled.List else Icons.Default.GridView,
-                                contentDescription = if (isGridView) "Vista de Lista" else "Vista de Cuadrícula"
-                            )
                         }
                     }
                 )
             }
         }
     ) { padding ->
-        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                DashboardSection(
-                    raffle = raffle, 
-                    stats = stats, 
-                    onShareWinner = { shareWinnerImage() }
+        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+            PrimaryTabRow(selectedTabIndex = selectedTabIndex) {
+                Tab(
+                    selected = selectedTabIndex == 0,
+                    onClick = { selectedTabIndex = 0 },
+                    text = { Text("Boletas", fontWeight = FontWeight.Bold) },
+                    icon = { Icon(Icons.Default.ConfirmationNumber, null) }
                 )
+                Tab(
+                    selected = selectedTabIndex == 1,
+                    onClick = { selectedTabIndex = 1 },
+                    text = { Text("Gestión", fontWeight = FontWeight.Bold) },
+                    icon = { Icon(Icons.Default.Settings, null) }
+                )
+            }
 
-                // Search Bar (Toggleable)
-                if (isSearchExpanded) {
-                    OutlinedTextField(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it },
-                        placeholder = { Text("Buscar por número o nombre...", fontSize = 14.sp) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                        leadingIcon = { Icon(Icons.Default.Search, null, modifier = Modifier.size(20.dp)) },
-                        trailingIcon = {
-                            IconButton(onClick = { 
-                                searchQuery = ""
-                                isSearchExpanded = false
-                            }) {
-                                Icon(Icons.Default.Close, null, modifier = Modifier.size(20.dp))
-                            }
-                        },
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedContainerColor = MaterialTheme.colorScheme.surface,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surface
-                        ),
-                        textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp)
-                    )
-                }
-                
-                LazyVerticalGrid(
-                    columns = if (isGridView) GridCells.Adaptive(minSize = 44.dp) else GridCells.Fixed(2),
-                    contentPadding = PaddingValues(if (isGridView) 4.dp else 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(if (isGridView) 2.dp else 4.dp),
-                    verticalArrangement = Arrangement.spacedBy(if (isGridView) 2.dp else 4.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    items(filteredTickets) { ticket ->
-                        val isSelected = ticket.id in selectedIds
-                        if (isGridView) {
-                            TicketCircle(
-                                ticket = ticket,
-                                digits = raffle.digits,
-                                isSelected = isSelected,
-                                showBadge = true,
-                                showName = true,
-                                onClick = {
-                                    if (isSelectionMode) {
-                                        selectedIds = if (isSelected) selectedIds - ticket.id else selectedIds + ticket.id
-                                    } else {
-                                        onTicketsAssign(listOf(ticket))
-                                    }
-                                },
-                                onLongClick = {
-                                    if (!isSelectionMode) {
-                                        selectedIds = setOf(ticket.id)
-                                    }
-                                },
-                                modifier = Modifier.fillMaxWidth().aspectRatio(1f)
-                            )
-                        } else {
-                            TicketListItem(
-                                ticket = ticket,
-                                digits = raffle.digits,
-                                isSelected = isSelected,
-                                onClick = {
-                                    if (isSelectionMode) {
-                                        selectedIds = if (isSelected) selectedIds - ticket.id else selectedIds + ticket.id
-                                    } else {
-                                        onTicketsAssign(listOf(ticket))
-                                    }
-                                },
-                                onLongClick = {
-                                    if (!isSelectionMode) {
-                                        selectedIds = setOf(ticket.id)
-                                    }
+            if (selectedTabIndex == 0) {
+                // TAB 1: TICKETS
+                Column(modifier = Modifier.fillMaxSize()) {
+                    // Search Bar (Toggleable)
+                    if (isSearchExpanded) {
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            placeholder = { Text("Buscar por número o nombre...", fontSize = 14.sp) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                            leadingIcon = { Icon(Icons.Default.Search, null, modifier = Modifier.size(20.dp)) },
+                            trailingIcon = {
+                                IconButton(onClick = { 
+                                    searchQuery = ""
+                                    isSearchExpanded = false
+                                }) {
+                                    Icon(Icons.Default.Close, null, modifier = Modifier.size(20.dp))
                                 }
-                            )
+                            },
+                            singleLine = true,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                            ),
+                            textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp)
+                        )
+                    }
+                    
+                    LazyVerticalGrid(
+                        columns = if (isGridView) GridCells.Adaptive(minSize = 44.dp) else GridCells.Fixed(2),
+                        contentPadding = PaddingValues(if (isGridView) 4.dp else 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(if (isGridView) 2.dp else 4.dp),
+                        verticalArrangement = Arrangement.spacedBy(if (isGridView) 2.dp else 4.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        items(filteredTickets) { ticket ->
+                            val isSelected = ticket.id in selectedIds
+                            if (isGridView) {
+                                TicketCircle(
+                                    ticket = ticket,
+                                    digits = raffle.digits,
+                                    isSelected = isSelected,
+                                    showBadge = true,
+                                    showName = true,
+                                    onClick = {
+                                        if (isSelectionMode) {
+                                            selectedIds = if (isSelected) selectedIds - ticket.id else selectedIds + ticket.id
+                                        } else {
+                                            onTicketsAssign(listOf(ticket))
+                                        }
+                                    },
+                                    onLongClick = {
+                                        if (!isSelectionMode) {
+                                            selectedIds = setOf(ticket.id)
+                                        }
+                                    },
+                                    modifier = Modifier.fillMaxWidth().aspectRatio(1f)
+                                )
+                            } else {
+                                TicketListItem(
+                                    ticket = ticket,
+                                    digits = raffle.digits,
+                                    isSelected = isSelected,
+                                    onClick = {
+                                        if (isSelectionMode) {
+                                            selectedIds = if (isSelected) selectedIds - ticket.id else selectedIds + ticket.id
+                                        } else {
+                                            onTicketsAssign(listOf(ticket))
+                                        }
+                                    },
+                                    onLongClick = {
+                                        if (!isSelectionMode) {
+                                            selectedIds = setOf(ticket.id)
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            } else {
+                // TAB 2: MANAGEMENT
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    DashboardSection(
+                        raffle = raffle, 
+                        stats = stats, 
+                        onShareWinner = { shareWinnerImage() }
+                    )
+
+                    Text("Herramientas de Venta", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            onClick = onMarketingClick,
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(Icons.Default.Image, null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Publicidad")
+                        }
+                        Button(
+                            onClick = { PdfExporter.exportRaffleToPdf(context, raffle, tickets) },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(Icons.Default.PictureAsPdf, null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Reporte PDF")
+                        }
+                    }
+
+                    Text("Equipo y Sorteo", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+
+                    var showInviteDialog by remember { mutableStateOf(false) }
+                    var inviteEmail by remember { mutableStateOf("") }
+                    
+                    if (showInviteDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showInviteDialog = false },
+                            title = { Text("Invitar Colaborador") },
+                            text = {
+                                Column {
+                                    Text("Ingresa el correo de la persona que te ayudará a vender:")
+                                    Spacer(Modifier.height(8.dp))
+                                    OutlinedTextField(
+                                        value = inviteEmail,
+                                        onValueChange = { inviteEmail = it },
+                                        label = { Text("Correo Electrónico") },
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                            },
+                            confirmButton = {
+                                TextButton(
+                                    enabled = inviteEmail.isNotBlank(),
+                                    onClick = {
+                                        onInviteCollaborator(inviteEmail)
+                                        showInviteDialog = false
+                                        inviteEmail = ""
+                                    }
+                                ) { Text("Enviar Invitación") }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = { showInviteDialog = false }) { Text("Cancelar") }
+                            }
+                        )
+                    }
+
+                    OutlinedButton(
+                        onClick = { showInviteDialog = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(Icons.Default.PersonAdd, null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Invitar a Vendedor")
+                    }
+
+                    if (raffle.status == RaffleStatus.ACTIVE) {
+                        Button(
+                            onClick = onDrawWinner,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                        ) {
+                            Icon(Icons.Default.Casino, null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Realizar Sorteo Final")
                         }
                     }
                 }
             }
+        }
 
-            // Hidden capture box for winner card
+        // Hidden capture box for winner card
             // We give it a fixed width and keep it off-screen so it can be measured properly
             Box(modifier = Modifier.width(360.dp).wrapContentHeight().offset(x = 2000.dp)) {
                 if (raffle.status == RaffleStatus.FINISHED) {
