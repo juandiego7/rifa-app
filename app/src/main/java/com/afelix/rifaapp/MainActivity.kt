@@ -64,7 +64,9 @@ class MainActivity : ComponentActivity() {
 
                 LaunchedEffect(authState) {
                     if (authState is AuthState.Authenticated) {
-                        viewModel.syncAllToCloud()
+                        viewModel.onUserLogin()
+                    } else if (authState is AuthState.Guest || authState is AuthState.Initial) {
+                        viewModel.onUserLogout()
                     }
                 }
 
@@ -94,7 +96,7 @@ class MainActivity : ComponentActivity() {
                             AuthScreen(
                                 viewModel = authViewModel,
                                 onAuthSuccess = {
-                                    viewModel.syncAllToCloud() // Backup local data to cloud on login
+                                    viewModel.onUserLogin() // Actualiza filtro y sincroniza
                                     navController.navigate("list") {
                                         popUpTo("auth") { inclusive = true }
                                     }

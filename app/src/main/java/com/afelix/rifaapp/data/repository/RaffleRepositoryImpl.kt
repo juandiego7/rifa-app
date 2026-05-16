@@ -10,8 +10,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class RaffleRepositoryImpl(private val dao: RaffleDao) : RaffleRepository {
-    override fun getRaffles(): Flow<List<Raffle>> =
-        dao.getRaffles().map { entities -> entities.map { it.toDomain() } }
+    override fun getRaffles(userId: String?): Flow<List<Raffle>> =
+        dao.getRafflesByUser(userId).map { entities -> entities.map { it.toDomain() } }
+
+    override fun getAllRaffles(): Flow<List<Raffle>> =
+        dao.getAllRaffles().map { entities -> entities.map { it.toDomain() } }
 
     override suspend fun getRaffleById(id: Long): Raffle? =
         dao.getRaffleById(id)?.toDomain()

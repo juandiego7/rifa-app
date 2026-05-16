@@ -5,8 +5,11 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface RaffleDao {
+    @Query("SELECT * FROM raffles WHERE userId = :userId OR userId IS NULL")
+    fun getRafflesByUser(userId: String?): Flow<List<RaffleEntity>>
+
     @Query("SELECT * FROM raffles")
-    fun getRaffles(): Flow<List<RaffleEntity>>
+    fun getAllRaffles(): Flow<List<RaffleEntity>>
 
     @Query("SELECT * FROM raffles WHERE id = :id")
     suspend fun getRaffleById(id: Long): RaffleEntity?

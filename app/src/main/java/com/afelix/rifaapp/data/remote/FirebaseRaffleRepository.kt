@@ -54,4 +54,40 @@ class FirebaseRaffleRepository {
     suspend fun deleteRaffle(raffleId: Long) {
         getRafflesCollection()?.document(raffleId.toString())?.delete()?.await()
     }
+
+    suspend fun fetchAllRaffles(): List<Pair<Raffle, List<Ticket>>> {
+        val collection = getRafflesCollection() ?: return emptyList()
+        val snapshot = collection.get().await()
+        
+        val result = mutableListOf<Pair<Raffle, List<Ticket>>>()
+        
+        for (doc in snapshot.documents) {
+            val raffle = Raffle(
+                id = doc.id.toLong(),
+                title = doc.getString("title") ?: "",
+                description = doc.getString("description") ?: "",
+                digits = doc.getLong("digits")?.toInt() ?: 2,
+                maxNumber = doc.getLong("maxNumber")?.toInt() ?: 100,
+                ticketValue = doc.getDouble("ticketValue") ?: 0.0,
+                prizeValue = doc.getDouble("prizeValue") ?: 0.0,
+                drawDate = doc.getLong("drawDate") ?: 0L,
+                status = com.afelix.rifaapp.domain.model.RaffleStatus.valueOf(doc.getString("status") ?: "ACTIVE"),
+                winningNumber = doc.getLong("winningNumber")?.toInt(),
+                userId = auth.currentUser?.uid
+            )
+            
+            val ticketsSnapshot = doc.reference.collection("tickets").get().await()
+            val tickets = ticketsSnapshot.documents.map { tDoc ->
+                Ticket(
+                    raffleId = raffle.id,
+                    number = tDoc.getLong("number")?.toInt() ?: 0,
+                    status = com.afelix.rifaapp.domain.model.TicketStatus.valueOf(tDoc.getString("status") ?: "AVAILABLE"),
+                    customerName = tDoc.getString("customerName"),
+                    customerPhone = tDoc.getString("customerPhone")
+                )
+            }
+            result.add(raffle to tickets)
+        }
+        return result
+    }
 }

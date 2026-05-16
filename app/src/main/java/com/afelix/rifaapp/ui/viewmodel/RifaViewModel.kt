@@ -26,15 +26,19 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
     private val createRaffleUseCase = CreateRaffleUseCase(repository)
     private val getStatsUseCase = GetRaffleDashboardStatsUseCase()
 
-    val raffles: StateFlow<List<Raffle>> = repository.getRaffles().flatMapLatest { raffleList ->
-        if (raffleList.isEmpty()) return@flatMapLatest flowOf(emptyList<Raffle>())
-        
-        val flows = raffleList.map { raffle ->
-            repository.getTicketsByRaffleId(raffle.id).map { tickets ->
-                raffle.copy(stats = getStatsUseCase(tickets, raffle.ticketValue))
+    private val _userFilter = MutableStateFlow<String?>(auth.currentUser?.uid)
+
+    val raffles: StateFlow<List<Raffle>> = _userFilter.flatMapLatest { userId ->
+        repository.getRaffles(userId).flatMapLatest { raffleList ->
+            if (raffleList.isEmpty()) return@flatMapLatest flowOf(emptyList<Raffle>())
+            
+            val flows = raffleList.map { raffle ->
+                repository.getTicketsByRaffleId(raffle.id).map { tickets ->
+                    raffle.copy(stats = getStatsUseCase(tickets, raffle.ticketValue))
+                }
             }
+            combine(flows) { it.toList() }
         }
-        combine(flows) { it.toList() }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     private val _selectedRaffle = MutableStateFlow<Raffle?>(null)
@@ -106,12 +110,34 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
 
     fun syncAllToCloud() {
         if (auth.currentUser == null) return
+        _userFilter.value = auth.currentUser?.uid
         viewModelScope.launch {
-            repository.getRaffles().first().forEach { raffle ->
-                val tickets = repository.getTicketsByRaffleId(raffle.id).first()
-                firebaseRepository.syncRaffle(raffle, tickets)
+            // First, push local data to cloud (in case of new local raffles)
+            repository.getAllRaffles().first().forEach { raffle ->
+                if (raffle.userId == null || raffle.userId == auth.currentUser?.uid) {
+                    val tickets = repository.getTicketsByRaffleId(raffle.id).first()
+                    firebaseRepository.syncRaffle(raffle, tickets)
+                }
+            }
+            
+            // Then, fetch everything from cloud to local to ensure we have cloud-only data
+            val cloudRaffles = firebaseRepository.fetchAllRaffles()
+            cloudRaffles.forEach { (raffle, tickets) ->
+                // Save/Update in local Room
+                val localId = repository.insertRaffle(raffle.copy(userId = auth.currentUser?.uid))
+                // For tickets, we need to ensure the raffleId matches the local one
+                repository.insertTickets(tickets.map { it.copy(raffleId = localId) })
             }
         }
+    }
+
+    fun onUserLogin() {
+        _userFilter.value = auth.currentUser?.uid
+        syncAllToCloud()
+    }
+
+    fun onUserLogout() {
+        _userFilter.value = null
     }
 
     private fun syncToCloud(raffleId: Long) {
