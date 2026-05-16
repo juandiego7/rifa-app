@@ -21,7 +21,7 @@ class FirebaseRaffleRepository {
             firestore.collection("raffles").document()
         }
 
-        val raffleData = mutableMapOf(
+        val raffleData = mutableMapOf<String, Any?>(
             "title" to raffle.title,
             "description" to raffle.description,
             "digits" to raffle.digits,
@@ -32,17 +32,20 @@ class FirebaseRaffleRepository {
             "status" to raffle.status.name,
             "winningNumber" to raffle.winningNumber,
             "createdAt" to raffle.createdAt,
-            "ownerId" to (raffle.userId ?: user.uid),
-            "ownerEmail" to (raffle.ownerEmail ?: user.email),
             "lastUpdated" to FieldValue.serverTimestamp()
         )
         
-        // Only set the collaborators list on creation or if needed
         if (raffle.cloudId.isNullOrBlank()) {
+            // New raffle: set owner info and initialize collaborators
+            raffleData["ownerId"] = user.uid
+            raffleData["ownerEmail"] = user.email
             raffleData["collaborators"] = listOf<String>()
+            docRef.set(raffleData).await()
+        } else {
+            // Existing raffle: update data but NEVER overwrite ownerId/Email via sync
+            // unless the current user is the owner (optional safety check)
+            docRef.update(raffleData).await()
         }
-
-        docRef.set(raffleData).await()
         
         // Sync assigned tickets in a subcollection
         val ticketsCollection = docRef.collection("tickets")

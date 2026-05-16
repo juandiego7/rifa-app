@@ -152,21 +152,18 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
                     }
                     
                     val raffleToInsert = if (existingLocal != null) {
-                        cloudRaffle.copy(id = existingLocal.id)
+                        cloudRaffle.copy(id = existingLocal.id, userId = auth.currentUser?.uid)
                     } else {
-                        cloudRaffle.copy(id = 0)
+                        cloudRaffle.copy(id = 0, userId = auth.currentUser?.uid)
                     }
                     
                     val localId = repository.insertRaffle(raffleToInsert)
-                    
-                    // CLEAN UP old tickets to prevent ID mismatches or duplicates
-                    repository.deleteTicketsByRaffleId(localId)
                     
                     // Reconstruct full ticket list
                     val fullTickets = (0 until raffleToInsert.maxNumber).map { number ->
                         cloudTickets.find { it.number == number } ?: Ticket(raffleId = localId, number = number)
                     }
-                    repository.insertTickets(fullTickets)
+                    repository.insertTickets(fullTickets.map { it.copy(raffleId = localId) })
                 }
             } catch (e: Exception) {
                 // Si falla la nube por permisos, al menos no se cierra la app
