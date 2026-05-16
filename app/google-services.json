@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "335547182069",
+    "project_id": "rifa-app-c410f",
+    "storage_bucket": "rifa-app-c410f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:335547182069:android:e3a4e8b0afae86a0774ebc",
+        "android_client_info": {
+          "package_name": "com.afelix.rifaapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBkZW-W44sBuav5BW6ehyrwaT4ssfAgVIk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

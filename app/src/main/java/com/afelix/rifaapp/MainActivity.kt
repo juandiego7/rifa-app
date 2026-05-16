@@ -17,6 +17,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.room.Room
+import com.google.firebase.FirebaseApp
+import com.google.firebase.firestore.FirebaseFirestore
 import com.afelix.rifaapp.data.local.RaffleDatabase
 import com.afelix.rifaapp.data.repository.RaffleRepositoryImpl
 import com.afelix.rifaapp.domain.model.Ticket
@@ -34,6 +36,9 @@ class MainActivity : ComponentActivity() {
         
         // Initialize Mobile Ads SDK
         MobileAds.initialize(this) {}
+        
+        // Initialize Firebase
+        FirebaseApp.initializeApp(this)
         
         val db = Room.databaseBuilder(
             applicationContext,
