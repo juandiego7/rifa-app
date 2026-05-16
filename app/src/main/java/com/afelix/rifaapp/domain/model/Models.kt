@@ -10,6 +10,7 @@ data class Raffle(
     val prizeValue: Double,
     val drawDate: Long,
     val status: RaffleStatus = RaffleStatus.ACTIVE,
+    val winningNumber: Int? = null,
     val stats: RaffleDashboardStats? = null,
     val userId: String? = null, // Owner ID (local backup ref)
     val cloudId: String? = null, // Unique Firestore ID for sharing

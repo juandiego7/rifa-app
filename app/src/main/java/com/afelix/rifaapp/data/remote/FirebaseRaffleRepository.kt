@@ -163,7 +163,25 @@ class FirebaseRaffleRepository {
     }
 
     suspend fun deleteRaffle(cloudId: String) {
-        // Only allow if owner - security rules will handle this
-        firestore.collection("raffles").document(cloudId).delete().await()
+        val user = auth.currentUser ?: return
+        
+        // 1. Try to delete from NEW collaborative collection
+        val docRef = firestore.collection("raffles").document(cloudId)
+        val snapshot = docRef.get().await()
+        
+        if (snapshot.exists()) {
+            val ownerId = snapshot.getString("ownerId")
+            if (ownerId == user.uid) {
+                // If owner, delete the whole document
+                docRef.delete().await()
+                // Note: subcollections (tickets) still exist in Firestore but are unreachable via the parent doc
+            } else {
+                // If collaborator, just remove self from collaborators list
+                docRef.update("collaborators", FieldValue.arrayRemove(user.uid)).await()
+            }
+        }
+        
+        // 2. Try to delete from OLD user-specific collection
+        firestore.collection("users").document(user.uid).collection("raffles").document(cloudId).delete().await()
     }
 }
