@@ -18,4 +18,5 @@ interface RaffleRepository {
     suspend fun updateTicket(ticket: Ticket)
     suspend fun updateTickets(tickets: List<Ticket>)
     suspend fun insertTickets(tickets: List<Ticket>)
+    suspend fun deleteTicketsByRaffleId(raffleId: Long)
 }

@@ -133,18 +133,16 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
                 // Fetch Pending Invitations
                 _pendingInvitations.value = firebaseRepository.fetchPendingInvitations()
 
-                // Pull cloud data (This is now our primary source of truth when logged in)
+                // Pull cloud data
                 val cloudRaffles = firebaseRepository.fetchAllUserRaffles()
+                val allLocalRaffles = repository.getAllRaffles().first()
+                
                 cloudRaffles.forEach { (cloudRaffle, cloudTickets) ->
                     // 1. DEDUPLICATION: Precise match using cloudId
-                    val allLocal = repository.getAllRaffles().first()
+                    var existingLocal = allLocalRaffles.find { it.cloudId == cloudRaffle.cloudId }
                     
-                    // First try by cloudId
-                    var existingLocal = allLocal.find { it.cloudId == cloudRaffle.cloudId }
-                    
-                    // If not found, try a soft match by Title + Date ONLY for entries without cloudId
                     if (existingLocal == null) {
-                        existingLocal = allLocal.find { 
+                        existingLocal = allLocalRaffles.find { 
                             it.cloudId == null && 
                             it.title == cloudRaffle.title && 
                             it.drawDate == cloudRaffle.drawDate 
@@ -159,11 +157,20 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
                     
                     val localId = repository.insertRaffle(raffleToInsert)
                     
+                    // CLEAN UP old tickets to prevent ID mismatches or duplicates
+                    repository.deleteTicketsByRaffleId(localId)
+                    
                     // Reconstruct full ticket list
                     val fullTickets = (0 until raffleToInsert.maxNumber).map { number ->
                         cloudTickets.find { it.number == number } ?: Ticket(raffleId = localId, number = number)
                     }
                     repository.insertTickets(fullTickets)
+
+                    // IMPORTANT: If this is the currently viewed raffle, update the reference
+                    if (_selectedRaffle.value?.cloudId == cloudRaffle.cloudId || 
+                        (_selectedRaffle.value?.title == cloudRaffle.title && _selectedRaffle.value?.createdAt == cloudRaffle.createdAt)) {
+                        _selectedRaffle.value = raffleToInsert.copy(id = localId)
+                    }
                 }
             } catch (e: Exception) {
                 // Si falla la nube por permisos, al menos no se cierra la app

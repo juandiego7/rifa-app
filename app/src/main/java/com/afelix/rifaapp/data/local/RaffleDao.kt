@@ -35,6 +35,9 @@ interface RaffleDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTickets(tickets: List<TicketEntity>)
 
+    @Query("DELETE FROM tickets WHERE raffleId = :raffleId")
+    suspend fun deleteTicketsByRaffleId(raffleId: Long)
+
     @Update
     suspend fun updateTicket(ticket: TicketEntity)
 
