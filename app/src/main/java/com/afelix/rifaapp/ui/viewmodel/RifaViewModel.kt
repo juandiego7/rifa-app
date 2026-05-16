@@ -100,8 +100,8 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
     fun deleteRaffle(raffle: Raffle) {
         viewModelScope.launch {
             repository.deleteRaffle(raffle)
-            if (auth.currentUser != null) {
-                firebaseRepository.deleteRaffle(raffle.id)
+            if (auth.currentUser != null && raffle.cloudId != null) {
+                firebaseRepository.deleteRaffle(raffle.cloudId)
             }
         }
     }
