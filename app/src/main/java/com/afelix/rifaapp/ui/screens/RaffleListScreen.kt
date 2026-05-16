@@ -254,6 +254,9 @@ fun RaffleItem(
     onPdf: () -> Unit,
     onMarketing: () -> Unit
 ) {
+    val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
+    val currentUser = auth.currentUser
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -317,8 +320,18 @@ fun RaffleItem(
                     )
                 }
             }
+
+            // Show owner email if not current user
+            if (currentUser != null && raffle.ownerEmail != null && raffle.ownerEmail != currentUser.email) {
+                Text(
+                    text = "Dueño: ${raffle.ownerEmail}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.Gray,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(4.dp))
             
             // 1. Full Width Prize & Winner Box
             Surface(

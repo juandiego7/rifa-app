@@ -12,10 +12,11 @@ data class Raffle(
     val status: RaffleStatus = RaffleStatus.ACTIVE,
     val winningNumber: Int? = null,
     val stats: RaffleDashboardStats? = null,
-    val userId: String? = null, // Owner ID (local backup ref)
+    val userId: String? = null, // Local session user ID (for filtering)
+    val ownerId: String? = null, // Cloud owner UID
     val cloudId: String? = null, // Unique Firestore ID for sharing
-    val ownerEmail: String? = null, // For display purposes
-    val createdAt: Long = System.currentTimeMillis() // Unique creation timestamp
+    val ownerEmail: String? = null, // Display email
+    val createdAt: Long = System.currentTimeMillis()
 )
 
 enum class RaffleStatus {

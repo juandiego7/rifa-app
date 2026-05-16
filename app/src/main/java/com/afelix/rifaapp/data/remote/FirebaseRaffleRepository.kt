@@ -83,7 +83,8 @@ class FirebaseRaffleRepository {
             drawDate = snapshot.getLong("drawDate") ?: 0L,
             status = com.afelix.rifaapp.domain.model.RaffleStatus.valueOf(snapshot.getString("status") ?: "ACTIVE"),
             winningNumber = snapshot.getLong("winningNumber")?.toInt(),
-            userId = snapshot.getString("ownerId"),
+            userId = user.uid, // Marked for local session user
+            ownerId = snapshot.getString("ownerId"),
             cloudId = cloudId,
             ownerEmail = snapshot.getString("ownerEmail"),
             createdAt = snapshot.getLong("createdAt") ?: 0L
@@ -134,9 +135,10 @@ class FirebaseRaffleRepository {
                     drawDate = doc.getLong("drawDate") ?: 0L,
                     status = com.afelix.rifaapp.domain.model.RaffleStatus.valueOf(doc.getString("status") ?: "ACTIVE"),
                     winningNumber = doc.getLong("winningNumber")?.toInt(),
-                    userId = doc.getString("ownerId") ?: user.uid,
+                    userId = user.uid, // Marked for local session user
+                    ownerId = doc.getString("ownerId"),
                     cloudId = cloudId,
-                    ownerEmail = doc.getString("ownerEmail") ?: user.email,
+                    ownerEmail = doc.getString("ownerEmail"),
                     createdAt = doc.getLong("createdAt") ?: 0L
                 )
                 
