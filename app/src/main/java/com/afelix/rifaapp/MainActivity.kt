@@ -124,7 +124,7 @@ class MainActivity : ComponentActivity() {
                                     viewModel.deleteRaffle(raffle)
                                 },
                                 onLogout = {
-                                    authViewModel.signOut()
+                                    authViewModel.signOut(applicationContext)
                                     navController.navigate("auth") {
                                         popUpTo("list") { inclusive = true }
                                     }

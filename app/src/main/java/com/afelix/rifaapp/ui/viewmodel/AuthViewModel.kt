@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import androidx.credentials.ClearCredentialStateRequest
+import java.util.UUID
 
 sealed class AuthState {
     object Initial : AuthState()
@@ -41,7 +43,8 @@ class AuthViewModel : ViewModel() {
                 val googleIdOption = GetGoogleIdOption.Builder()
                     .setFilterByAuthorizedAccounts(false)
                     .setServerClientId("335547182069-gsof48ime75h5uon4mpovhaqo7d50n44.apps.googleusercontent.com")
-                    .setAutoSelectEnabled(false) // Desactivamos la selección automática
+                    .setAutoSelectEnabled(false)
+                    .setNonce(UUID.randomUUID().toString()) // Forzamos una nueva solicitud cada vez
                     .build()
 
                 val request = GetCredentialRequest.Builder()
@@ -82,8 +85,16 @@ class AuthViewModel : ViewModel() {
         _authState.value = AuthState.Guest
     }
 
-    fun signOut() {
-        auth.signOut()
-        _authState.value = AuthState.Initial
+    fun signOut(context: Context) {
+        viewModelScope.launch {
+            auth.signOut()
+            try {
+                val credentialManager = CredentialManager.create(context)
+                credentialManager.clearCredentialState(ClearCredentialStateRequest())
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            _authState.value = AuthState.Initial
+        }
     }
 }
