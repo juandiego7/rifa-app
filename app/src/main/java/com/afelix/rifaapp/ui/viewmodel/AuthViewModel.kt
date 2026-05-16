@@ -44,11 +44,11 @@ class AuthViewModel : ViewModel() {
                     .setFilterByAuthorizedAccounts(false)
                     .setServerClientId("335547182069-gsof48ime75h5uon4mpovhaqo7d50n44.apps.googleusercontent.com")
                     .setAutoSelectEnabled(false)
-                    .setNonce(UUID.randomUUID().toString()) // Forzamos una nueva solicitud cada vez
                     .build()
 
                 val request = GetCredentialRequest.Builder()
                     .addCredentialOption(googleIdOption)
+                    .setPreferImmediatelyAvailableCredentials(false) // Fuerza a mostrar el selector siempre
                     .build()
 
                 val result = credentialManager.getCredential(context, request)
