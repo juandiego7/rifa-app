@@ -12,7 +12,20 @@
           "package_name": "com.afelix.rifaapp"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "335547182069-5bfgu8t102qmvgho2rhnjph87lurp2kj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.afelix.rifaapp",
+            "certificate_hash": "f7511c1beecc512ec8d9de4f68cf50c19714d5fb"
+          }
+        },
+        {
+          "client_id": "335547182069-gsof48ime75h5uon4mpovhaqo7d50n44.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBkZW-W44sBuav5BW6ehyrwaT4ssfAgVIk"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "335547182069-gsof48ime75h5uon4mpovhaqo7d50n44.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
