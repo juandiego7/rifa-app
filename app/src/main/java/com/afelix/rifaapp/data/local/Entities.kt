@@ -40,7 +40,8 @@ data class RaffleEntity(
             childColumns = ["raffleId"],
             onDelete = ForeignKey.CASCADE
         )
-    ]
+    ],
+    indices = [Index(value = ["raffleId", "number"], unique = true)]
 )
 data class TicketEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
