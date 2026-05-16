@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import com.afelix.rifaapp.core.util.CurrencyFormatter
 import com.afelix.rifaapp.core.util.DateFormatter
 import com.afelix.rifaapp.core.util.ImageSharing
+import com.afelix.rifaapp.core.util.PdfExporter
 import com.afelix.rifaapp.core.util.ViewCaptureWrapper
 import com.afelix.rifaapp.domain.model.Raffle
 import com.afelix.rifaapp.domain.model.RaffleDashboardStats
@@ -134,6 +135,9 @@ fun RaffleDetailScreen(
                                 imageVector = if (isSearchExpanded) Icons.Default.SearchOff else Icons.Default.Search,
                                 contentDescription = "Buscar"
                             )
+                        }
+                        IconButton(onClick = { PdfExporter.exportRaffleToPdf(context, raffle, tickets) }) {
+                            Icon(Icons.Default.PictureAsPdf, contentDescription = "Exportar Reporte PDF")
                         }
                         IconButton(onClick = onMarketingClick) {
                             Icon(Icons.Default.Image, contentDescription = "Compartir Publicidad")
