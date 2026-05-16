@@ -19,6 +19,9 @@ class RaffleRepositoryImpl(private val dao: RaffleDao) : RaffleRepository {
     override fun getAllRaffles(): Flow<List<Raffle>> =
         dao.getAllRaffles().map { entities -> entities.map { it.toDomain() } }
 
+    override fun getRaffleByIdFlow(id: Long): Flow<Raffle?> =
+        dao.getRaffleByIdFlow(id).map { it?.toDomain() }
+
     override suspend fun getRaffleById(id: Long): Raffle? =
         dao.getRaffleById(id)?.toDomain()
 

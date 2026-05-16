@@ -57,17 +57,20 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    private val _selectedRaffle = MutableStateFlow<Raffle?>(null)
-    val selectedRaffle = _selectedRaffle.asStateFlow()
+    private val _selectedRaffleId = MutableStateFlow<Long?>(null)
+    val selectedRaffle: StateFlow<Raffle?> = _selectedRaffleId.flatMapLatest { id ->
+        if (id == null) flowOf(null)
+        else repository.getRaffleByIdFlow(id)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
 
-    val tickets: StateFlow<List<Ticket>> = _selectedRaffle
+    val tickets: StateFlow<List<Ticket>> = selectedRaffle
         .filterNotNull()
         .flatMapLatest { raffle ->
             repository.getTicketsByRaffleId(raffle.id)
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val stats = combine(tickets, _selectedRaffle) { tickets, raffle ->
+    val stats = combine(tickets, selectedRaffle) { tickets, raffle ->
         if (raffle != null) {
             getStatsUseCase(tickets, raffle.ticketValue)
         } else {
@@ -76,7 +79,7 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), RaffleDashboardStats(0, 0, 0, 0, 0.0, 0.0))
 
     fun selectRaffle(raffle: Raffle) {
-        _selectedRaffle.value = raffle
+        _selectedRaffleId.value = raffle.id
     }
 
     fun createRaffle(raffle: Raffle) {
@@ -119,7 +122,6 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
                 status = com.afelix.rifaapp.domain.model.RaffleStatus.FINISHED
             )
             repository.updateRaffle(updatedRaffle)
-            _selectedRaffle.value = updatedRaffle
             syncToCloud(raffle.id)
         }
     }

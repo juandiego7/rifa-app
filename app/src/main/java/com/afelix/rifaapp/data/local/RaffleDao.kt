@@ -15,6 +15,9 @@ interface RaffleDao {
     fun getAllRaffles(): Flow<List<RaffleEntity>>
 
     @Query("SELECT * FROM raffles WHERE id = :id")
+    fun getRaffleByIdFlow(id: Long): Flow<RaffleEntity?>
+
+    @Query("SELECT * FROM raffles WHERE id = :id")
     suspend fun getRaffleById(id: Long): RaffleEntity?
 
     @Query("SELECT * FROM raffles WHERE cloudId = :cloudId")
