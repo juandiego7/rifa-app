@@ -25,9 +25,12 @@ import com.afelix.rifaapp.domain.model.Ticket
 import com.afelix.rifaapp.ui.components.AdBanner
 import com.afelix.rifaapp.ui.screens.*
 import com.afelix.rifaapp.ui.theme.RifaAppTheme
+import com.afelix.rifaapp.ui.viewmodel.AuthState
+import com.afelix.rifaapp.ui.viewmodel.AuthViewModel
 import com.afelix.rifaapp.ui.viewmodel.RifaViewModel
 import com.afelix.rifaapp.ui.viewmodel.RifaViewModelFactory
 import com.google.android.gms.ads.MobileAds
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,7 +57,11 @@ class MainActivity : ComponentActivity() {
             RifaAppTheme {
                 val navController = rememberNavController()
                 val viewModel: RifaViewModel = viewModel(factory = viewModelFactory)
+                val authViewModel: AuthViewModel = viewModel()
                 
+                val authState by authViewModel.authState.collectAsState()
+                val startDestination = if (authState is AuthState.Authenticated || authState is AuthState.Guest) "list" else "auth"
+
                 var ticketsToAssign by remember { mutableStateOf<List<Ticket>?>(null) }
                 var ticketsToPreview by remember { mutableStateOf<List<Ticket>?>(null) }
 
@@ -67,20 +74,31 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     modifier = Modifier.navigationBarsPadding(),
                     bottomBar = {
-                        if (showAdBanner) {
+                        if (showAdBanner && currentRoute != "auth") {
                             AdBanner()
                         }
                     }
                 ) { padding ->
                     NavHost(
                         navController = navController, 
-                        startDestination = "list",
+                        startDestination = startDestination,
                         modifier = Modifier.padding(bottom = padding.calculateBottomPadding())
                     ) {
+                        composable("auth") {
+                            AuthScreen(
+                                viewModel = authViewModel,
+                                onAuthSuccess = {
+                                    navController.navigate("list") {
+                                        popUpTo("auth") { inclusive = true }
+                                    }
+                                }
+                            )
+                        }
                         composable("list") {
                             val raffles by viewModel.raffles.collectAsState()
                             RaffleListScreen(
                                 raffles = raffles,
+                                authViewModel = authViewModel,
                                 onRaffleClick = { raffle ->
                                     viewModel.selectRaffle(raffle)
                                     navController.navigate("detail")
@@ -90,6 +108,12 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onDeleteRaffle = { raffle ->
                                     viewModel.deleteRaffle(raffle)
+                                },
+                                onLogout = {
+                                    authViewModel.signOut()
+                                    navController.navigate("auth") {
+                                        popUpTo("list") { inclusive = true }
+                                    }
                                 }
                             )
                         }

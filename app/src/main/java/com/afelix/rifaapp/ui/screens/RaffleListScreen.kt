@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -24,14 +25,17 @@ import com.afelix.rifaapp.core.util.CurrencyFormatter
 import com.afelix.rifaapp.core.util.DateFormatter
 import com.afelix.rifaapp.domain.model.Raffle
 import com.afelix.rifaapp.domain.model.RaffleStatus
+import com.afelix.rifaapp.ui.viewmodel.AuthViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RaffleListScreen(
     raffles: List<Raffle>,
+    authViewModel: AuthViewModel,
     onRaffleClick: (Raffle) -> Unit,
     onCreateRaffleClick: () -> Unit,
-    onDeleteRaffle: (Raffle) -> Unit
+    onDeleteRaffle: (Raffle) -> Unit,
+    onLogout: () -> Unit
 ) {
     var raffleToDelete by remember { mutableStateOf<Raffle?>(null) }
 
@@ -64,9 +68,12 @@ fun RaffleListScreen(
             TopAppBar(
                 title = { Text("Mis Rifas") },
                 actions = {
+                    IconButton(onClick = onLogout) {
+                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Cerrar Sesión")
+                    }
                     IconButton(
                         onClick = onCreateRaffleClick,
-                        modifier = Modifier.padding(end = 12.dp) // Aumentamos el margen a la derecha
+                        modifier = Modifier.padding(end = 12.dp)
                     ) {
                         Icon(Icons.Default.Add, contentDescription = "Crear Rifa")
                     }
