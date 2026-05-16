@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,6 +35,8 @@ import com.afelix.rifaapp.ui.viewmodel.AuthViewModel
 fun RaffleListScreen(
     raffles: List<Raffle>,
     authViewModel: AuthViewModel,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
     onRaffleClick: (Raffle) -> Unit,
     onCreateRaffleClick: () -> Unit,
     onDeleteRaffle: (Raffle) -> Unit,
@@ -152,19 +155,25 @@ fun RaffleListScreen(
             )
         }
     ) { padding ->
-        LazyColumn(
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(padding)
         ) {
-            items(raffles) { raffle ->
-                RaffleItem(
-                    raffle = raffle,
-                    onClick = { onRaffleClick(raffle) },
-                    onDelete = { raffleToDelete = raffle }
-                )
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(raffles) { raffle ->
+                    RaffleItem(
+                        raffle = raffle,
+                        onClick = { onRaffleClick(raffle) },
+                        onDelete = { raffleToDelete = raffle }
+                    )
+                }
             }
         }
     }

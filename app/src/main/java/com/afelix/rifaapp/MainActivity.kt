@@ -105,9 +105,13 @@ class MainActivity : ComponentActivity() {
                         }
                         composable("list") {
                             val raffles by viewModel.raffles.collectAsState()
+                            val isRefreshing by viewModel.isRefreshing.collectAsState()
+                            
                             RaffleListScreen(
                                 raffles = raffles,
                                 authViewModel = authViewModel,
+                                isRefreshing = isRefreshing,
+                                onRefresh = { viewModel.syncAllToCloud() },
                                 onRaffleClick = { raffle ->
                                     viewModel.selectRaffle(raffle)
                                     navController.navigate("detail")

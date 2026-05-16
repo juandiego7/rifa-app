@@ -26,6 +26,9 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
     private val createRaffleUseCase = CreateRaffleUseCase(repository)
     private val getStatsUseCase = GetRaffleDashboardStatsUseCase()
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
+
     private val _userFilter = MutableStateFlow<String?>(auth.currentUser?.uid)
 
     init {
@@ -122,6 +125,7 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
         if (auth.currentUser == null) return
         _userFilter.value = auth.currentUser?.uid
         viewModelScope.launch {
+            _isRefreshing.value = true
             try {
                 // Push local data
                 repository.getAllRaffles().first().forEach { raffle ->
@@ -159,6 +163,8 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
             } catch (e: Exception) {
                 // Si falla la nube por permisos, al menos no se cierra la app
                 e.printStackTrace()
+            } finally {
+                _isRefreshing.value = false
             }
         }
     }
