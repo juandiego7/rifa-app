@@ -130,6 +130,10 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onJoinRaffle = { code ->
                                     viewModel.joinRaffle(code)
+                                },
+                                pendingInvitations = viewModel.pendingInvitations.collectAsState().value,
+                                onInvitationResponse = { id, accept ->
+                                    viewModel.respondToInvitation(id, accept)
                                 }
                             )
                         }
@@ -164,6 +168,12 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onDrawWinner = {
                                     showDrawWinner = true
+                                },
+                                onInviteCollaborator = { email ->
+                                    val raffle = viewModel.selectedRaffle.value
+                                    if (raffle?.cloudId != null) {
+                                        viewModel.sendInvitation(raffle.cloudId, raffle.title, email)
+                                    }
                                 }
                             )
 

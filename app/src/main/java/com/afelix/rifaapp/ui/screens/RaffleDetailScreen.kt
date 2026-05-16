@@ -50,7 +50,8 @@ fun RaffleDetailScreen(
     onTicketsAssign: (List<Ticket>) -> Unit,
     onTicketsShare: (List<Ticket>) -> Unit,
     onMarketingClick: () -> Unit,
-    onDrawWinner: () -> Unit
+    onDrawWinner: () -> Unit,
+    onInviteCollaborator: (String) -> Unit
 ) {
     if (raffle == null) return
 
@@ -132,15 +133,45 @@ fun RaffleDetailScreen(
                             }
                         }
                         if (raffle.cloudId != null) {
-                            IconButton(onClick = {
-                                val intent = Intent(Intent.ACTION_SEND).apply {
-                                    type = "text/plain"
-                                    val message = "¡Ayúdame a vender esta rifa! Únete usando este código en Rifa App: ${raffle.cloudId}"
-                                    putExtra(Intent.EXTRA_TEXT, message)
-                                }
-                                context.startActivity(Intent.createChooser(intent, "Compartir Código de Colaborador"))
-                            }) {
-                                Icon(Icons.Default.PersonAdd, contentDescription = "Compartir Código de Colaborador")
+                            var showInviteDialog by remember { mutableStateOf(false) }
+                            var inviteEmail by remember { mutableStateOf("") }
+                            
+                            if (showInviteDialog) {
+                                AlertDialog(
+                                    onDismissRequest = { showInviteDialog = false },
+                                    title = { Text("Invitar Colaborador") },
+                                    text = {
+                                        Column {
+                                            Text("Ingresa el correo de la persona que te ayudará a vender:")
+                                            Spacer(Modifier.height(8.dp))
+                                            OutlinedTextField(
+                                                value = inviteEmail,
+                                                onValueChange = { inviteEmail = it },
+                                                label = { Text("Correo Electrónico") },
+                                                modifier = Modifier.fillMaxWidth()
+                                            )
+                                        }
+                                    },
+                                    confirmButton = {
+                                        TextButton(
+                                            enabled = inviteEmail.isNotBlank(),
+                                            onClick = {
+                                                // Call ViewModel's sendInvitation
+                                                // (We will handle this passing the lambda)
+                                                onInviteCollaborator(inviteEmail)
+                                                showInviteDialog = false
+                                                inviteEmail = ""
+                                            }
+                                        ) { Text("Enviar Invitación") }
+                                    },
+                                    dismissButton = {
+                                        TextButton(onClick = { showInviteDialog = false }) { Text("Cancelar") }
+                                    }
+                                )
+                            }
+                            
+                            IconButton(onClick = { showInviteDialog = true }) {
+                                Icon(Icons.Default.PersonAdd, contentDescription = "Invitar Colaborador")
                             }
                         }
                         IconButton(onClick = { isSearchExpanded = !isSearchExpanded }) {

@@ -41,11 +41,66 @@ fun RaffleListScreen(
     onCreateRaffleClick: () -> Unit,
     onDeleteRaffle: (Raffle) -> Unit,
     onLogout: () -> Unit,
-    onJoinRaffle: (String) -> Unit
+    onJoinRaffle: (String) -> Unit,
+    pendingInvitations: List<Map<String, Any>>,
+    onInvitationResponse: (String, Boolean) -> Unit
 ) {
     var raffleToDelete by remember { mutableStateOf<Raffle?>(null) }
     var showJoinDialog by remember { mutableStateOf(false) }
     var joinCode by remember { mutableStateOf("") }
+    var showInvitationsDialog by remember { mutableStateOf(false) }
+
+    if (showInvitationsDialog) {
+        AlertDialog(
+            onDismissRequest = { showInvitationsDialog = false },
+            title = { Text("Invitaciones de Colaboración") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (pendingInvitations.isEmpty()) {
+                        Text("No tienes invitaciones pendientes.")
+                    } else {
+                        pendingInvitations.forEach { invite ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                            ) {
+                                Column(modifier = Modifier.padding(12.dp)) {
+                                    Text(
+                                        text = invite["raffleTitle"] as? String ?: "Rifa sin título",
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Text(
+                                        text = "Dueño: ${invite["ownerEmail"]}",
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
+                                    Spacer(Modifier.height(8.dp))
+                                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Button(
+                                            onClick = {
+                                                onInvitationResponse(invite["id"] as String, true)
+                                                showInvitationsDialog = false
+                                            },
+                                            modifier = Modifier.weight(1f)
+                                        ) { Text("Aceptar", fontSize = 11.sp) }
+                                        OutlinedButton(
+                                            onClick = {
+                                                onInvitationResponse(invite["id"] as String, false)
+                                            },
+                                            modifier = Modifier.weight(1f)
+                                        ) { Text("Rechazar", fontSize = 11.sp) }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showInvitationsDialog = false }) { Text("Cerrar") }
+            }
+        )
+    }
 
     if (showJoinDialog) {
         AlertDialog(
@@ -135,8 +190,16 @@ fun RaffleListScreen(
                 },
                 actions = {
                     if (currentUser != null) {
-                        IconButton(onClick = { showJoinDialog = true }) {
-                            Icon(Icons.Default.GroupAdd, contentDescription = "Unirse a Rifa")
+                        IconButton(onClick = { showInvitationsDialog = true }) {
+                            BadgedBox(
+                                badge = {
+                                    if (pendingInvitations.isNotEmpty()) {
+                                        Badge { Text(pendingInvitations.size.toString()) }
+                                    }
+                                }
+                            ) {
+                                Icon(Icons.Default.Notifications, contentDescription = "Invitaciones")
+                            }
                         }
                     }
                     IconButton(onClick = onLogout) {

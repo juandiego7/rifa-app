@@ -194,4 +194,51 @@ class FirebaseRaffleRepository {
         }
         oldDocRef.delete().await()
     }
+
+    // --- Invitations System ---
+
+    suspend fun sendInvitation(raffleId: String, raffleTitle: String, targetEmail: String) {
+        val user = auth.currentUser ?: return
+        val invitation = mapOf(
+            "raffleId" to raffleId,
+            "raffleTitle" to raffleTitle,
+            "ownerEmail" to user.email,
+            "targetEmail" to targetEmail,
+            "status" to "PENDING",
+            "timestamp" to FieldValue.serverTimestamp()
+        )
+        // Use a composite ID to prevent multiple invitations for the same raffle/user
+        val invId = "${raffleId}_${targetEmail.replace(".", "_")}"
+        firestore.collection("invitations").document(invId).set(invitation).await()
+    }
+
+    suspend fun fetchPendingInvitations(): List<Map<String, Any>> {
+        val user = auth.currentUser ?: return emptyList()
+        val email = user.email ?: return emptyList()
+        
+        val snapshot = firestore.collection("invitations")
+            .whereEqualTo("targetEmail", email)
+            .whereEqualTo("status", "PENDING")
+            .get().await()
+            
+        return snapshot.documents.map { doc ->
+            doc.data?.toMutableMap()?.apply { this["id"] = doc.id } ?: emptyMap()
+        }
+    }
+
+    suspend fun respondToInvitation(invitationId: String, accept: Boolean) {
+        val docRef = firestore.collection("invitations").document(invitationId)
+        if (accept) {
+            val snapshot = docRef.get().await()
+            val raffleId = snapshot.getString("raffleId") ?: return
+            
+            // 1. Join the raffle
+            joinRaffle(raffleId)
+            
+            // 2. Mark as accepted
+            docRef.update("status", "ACCEPTED").await()
+        } else {
+            docRef.update("status", "DECLINED").await()
+        }
+    }
 }

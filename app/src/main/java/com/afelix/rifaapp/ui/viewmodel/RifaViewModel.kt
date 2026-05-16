@@ -29,6 +29,9 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing = _isRefreshing.asStateFlow()
 
+    private val _pendingInvitations = MutableStateFlow<List<Map<String, Any>>>(emptyList())
+    val pendingInvitations = _pendingInvitations.asStateFlow()
+
     private val _userFilter = MutableStateFlow<String?>(auth.currentUser?.uid)
 
     init {
@@ -127,6 +130,9 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
         viewModelScope.launch {
             _isRefreshing.value = true
             try {
+                // Fetch Pending Invitations
+                _pendingInvitations.value = firebaseRepository.fetchPendingInvitations()
+
                 // Push local data
                 repository.getAllRaffles().first().forEach { raffle ->
                     val tickets = repository.getTicketsByRaffleId(raffle.id).first()
@@ -182,6 +188,20 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
                 repository.insertTickets(fullTickets)
                 syncAllToCloud()
             }
+        }
+    }
+
+    fun sendInvitation(raffleId: String, raffleTitle: String, email: String) {
+        viewModelScope.launch {
+            firebaseRepository.sendInvitation(raffleId, raffleTitle, email)
+        }
+    }
+
+    fun respondToInvitation(invitationId: String, accept: Boolean) {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            firebaseRepository.respondToInvitation(invitationId, accept)
+            syncAllToCloud()
         }
     }
 
