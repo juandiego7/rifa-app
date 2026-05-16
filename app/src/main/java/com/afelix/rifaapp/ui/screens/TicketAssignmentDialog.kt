@@ -1,9 +1,7 @@
 package com.afelix.rifaapp.ui.screens
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.provider.ContactsContract
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -14,7 +12,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ContactPage
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -27,15 +24,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import com.afelix.rifaapp.core.util.CurrencyFormatter
-import com.afelix.rifaapp.core.util.DateFormatter
 import com.afelix.rifaapp.core.util.Country
 import com.afelix.rifaapp.core.util.CountryService
 import com.afelix.rifaapp.domain.model.Raffle
 import com.afelix.rifaapp.domain.model.Ticket
 import com.afelix.rifaapp.domain.model.TicketStatus
 import com.afelix.rifaapp.ui.components.AdBanner
-import java.net.URLEncoder
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -133,42 +127,6 @@ fun TicketAssignmentDialog(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) contactPickerLauncher.launch(null)
-    }
-
-    val createMessage = {
-        val numbers = tickets.joinToString(", ") { it.number.toString().padStart(raffle.digits, '0') }
-        val prize = if (raffle.prizeValue > 0) CurrencyFormatter.format(raffle.prizeValue) else raffle.description
-        val total = CurrencyFormatter.format(raffle.ticketValue * tickets.size)
-        val date = DateFormatter.format(raffle.drawDate)
-
-        """
-            🎟️ *TICKET DE RIFA* 🎟️
-            
-            *Premio:* $prize
-            *Cliente:* $name
-            *Números:* $numbers
-            *Fecha Sorteo:* $date
-            *Total a pagar:* $total
-            
-            ¡Gracias por participar y mucha suerte! 🍀
-        """.trimIndent()
-    }
-
-    val shareUniversal = {
-        val message = createMessage()
-        val intent = Intent(Intent.ACTION_SEND).apply {
-            type = "text/plain"
-            putExtra(Intent.EXTRA_TEXT, message)
-        }
-        context.startActivity(Intent.createChooser(intent, "Compartir Ticket"))
-    }
-
-    val shareWhatsApp = {
-        val message = createMessage()
-        val fullPhone = "${selectedCountry.dialCode}${phoneNumber.trim()}".filter { it.isDigit() }
-        val url = "https://api.whatsapp.com/send?phone=$fullPhone&text=${URLEncoder.encode(message, "UTF-8")}"
-        val intent = Intent(Intent.ACTION_VIEW).apply { data = Uri.parse(url) }
-        context.startActivity(intent)
     }
 
     AlertDialog(
@@ -355,22 +313,6 @@ fun TicketAssignmentDialog(
         },
         confirmButton = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                // Solo mostramos compartir si el estado no es Disponible y hay datos de contacto
-                if (status != TicketStatus.AVAILABLE && name.isNotBlank() && phoneNumber.isNotBlank()) {
-                    IconButton(
-                        onClick = { shareWhatsApp() },
-                        modifier = Modifier.padding(end = 4.dp)
-                    ) {
-                        Icon(Icons.Default.Share, contentDescription = "Directo a WhatsApp", tint = Color(0xFF25D366))
-                    }
-                    IconButton(
-                        onClick = { shareUniversal() },
-                        modifier = Modifier.padding(end = 8.dp)
-                    ) {
-                        Icon(Icons.Default.Share, contentDescription = "Compartir en cualquier app", tint = MaterialTheme.colorScheme.primary)
-                    }
-                }
-                
                 if (tickets.all { it.status != TicketStatus.AVAILABLE }) {
                     TextButton(
                         onClick = {
