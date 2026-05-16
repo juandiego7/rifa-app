@@ -172,16 +172,26 @@ class FirebaseRaffleRepository {
         if (snapshot.exists()) {
             val ownerId = snapshot.getString("ownerId")
             if (ownerId == user.uid) {
-                // If owner, delete the whole document
+                // 1. Delete all tickets in the subcollection first
+                val ticketsSnapshot = docRef.collection("tickets").get().await()
+                for (ticketDoc in ticketsSnapshot.documents) {
+                    ticketDoc.reference.delete().await()
+                }
+                
+                // 2. Delete the main raffle document
                 docRef.delete().await()
-                // Note: subcollections (tickets) still exist in Firestore but are unreachable via the parent doc
             } else {
                 // If collaborator, just remove self from collaborators list
                 docRef.update("collaborators", FieldValue.arrayRemove(user.uid)).await()
             }
         }
         
-        // 2. Try to delete from OLD user-specific collection
-        firestore.collection("users").document(user.uid).collection("raffles").document(cloudId).delete().await()
+        // 3. Try to delete from OLD user-specific collection
+        val oldDocRef = firestore.collection("users").document(user.uid).collection("raffles").document(cloudId)
+        val oldTicketsSnapshot = oldDocRef.collection("tickets").get().await()
+        for (ticketDoc in oldTicketsSnapshot.documents) {
+            ticketDoc.reference.delete().await()
+        }
+        oldDocRef.delete().await()
     }
 }
