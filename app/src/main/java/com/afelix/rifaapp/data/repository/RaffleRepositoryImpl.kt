@@ -19,6 +19,9 @@ class RaffleRepositoryImpl(private val dao: RaffleDao) : RaffleRepository {
     override suspend fun getRaffleById(id: Long): Raffle? =
         dao.getRaffleById(id)?.toDomain()
 
+    override suspend fun getRaffleByCloudId(cloudId: String): Raffle? =
+        dao.getRaffleByCloudId(cloudId)?.toDomain()
+
     override suspend fun insertRaffle(raffle: Raffle): Long =
         dao.insertRaffle(raffle.toEntity())
 

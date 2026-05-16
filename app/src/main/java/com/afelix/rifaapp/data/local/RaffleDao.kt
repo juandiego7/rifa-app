@@ -14,6 +14,9 @@ interface RaffleDao {
     @Query("SELECT * FROM raffles WHERE id = :id")
     suspend fun getRaffleById(id: Long): RaffleEntity?
 
+    @Query("SELECT * FROM raffles WHERE cloudId = :cloudId")
+    suspend fun getRaffleByCloudId(cloudId: String): RaffleEntity?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRaffle(raffle: RaffleEntity): Long
 

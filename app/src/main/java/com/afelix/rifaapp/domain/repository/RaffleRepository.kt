@@ -8,6 +8,7 @@ interface RaffleRepository {
     fun getRaffles(userId: String?): Flow<List<Raffle>>
     fun getAllRaffles(): Flow<List<Raffle>>
     suspend fun getRaffleById(id: Long): Raffle?
+    suspend fun getRaffleByCloudId(cloudId: String): Raffle?
     suspend fun insertRaffle(raffle: Raffle): Long
     suspend fun updateRaffle(raffle: Raffle)
     suspend fun deleteRaffle(raffle: Raffle)
