@@ -12,7 +12,9 @@ data class Raffle(
     val status: RaffleStatus = RaffleStatus.ACTIVE,
     val winningNumber: Int? = null,
     val stats: RaffleDashboardStats? = null,
-    val userId: String? = null // To identify which user owns this raffle
+    val userId: String? = null, // Owner ID (local backup ref)
+    val cloudId: String? = null, // Unique Firestore ID for sharing
+    val ownerEmail: String? = null // For display purposes
 )
 
 enum class RaffleStatus {

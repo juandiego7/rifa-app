@@ -37,9 +37,48 @@ fun RaffleListScreen(
     onRaffleClick: (Raffle) -> Unit,
     onCreateRaffleClick: () -> Unit,
     onDeleteRaffle: (Raffle) -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onJoinRaffle: (String) -> Unit
 ) {
     var raffleToDelete by remember { mutableStateOf<Raffle?>(null) }
+    var showJoinDialog by remember { mutableStateOf(false) }
+    var joinCode by remember { mutableStateOf("") }
+
+    if (showJoinDialog) {
+        AlertDialog(
+            onDismissRequest = { showJoinDialog = false },
+            title = { Text("Unirse a una Rifa") },
+            text = {
+                Column {
+                    Text("Ingresa el código compartido por el dueño de la rifa:")
+                    Spacer(Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = joinCode,
+                        onValueChange = { joinCode = it },
+                        label = { Text("Código de Colaboración") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    enabled = joinCode.isNotBlank(),
+                    onClick = {
+                        onJoinRaffle(joinCode)
+                        showJoinDialog = false
+                        joinCode = ""
+                    }
+                ) {
+                    Text("Unirse")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showJoinDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
 
     if ( raffleToDelete != null ) {
         AlertDialog(
@@ -92,6 +131,11 @@ fun RaffleListScreen(
                     }
                 },
                 actions = {
+                    if (currentUser != null) {
+                        IconButton(onClick = { showJoinDialog = true }) {
+                            Icon(Icons.Default.GroupAdd, contentDescription = "Unirse a Rifa")
+                        }
+                    }
                     IconButton(onClick = onLogout) {
                         Icon(
                             imageVector = if (currentUser != null) Icons.AutoMirrored.Filled.Logout else Icons.AutoMirrored.Filled.Login,

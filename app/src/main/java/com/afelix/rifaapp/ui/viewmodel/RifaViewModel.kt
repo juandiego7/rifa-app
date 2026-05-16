@@ -122,26 +122,39 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
         if (auth.currentUser == null) return
         _userFilter.value = auth.currentUser?.uid
         viewModelScope.launch {
-            // First, push local data to cloud (in case of new local raffles)
+            // Push local data
             repository.getAllRaffles().first().forEach { raffle ->
-                if (raffle.userId == null || raffle.userId == auth.currentUser?.uid) {
-                    val tickets = repository.getTicketsByRaffleId(raffle.id).first()
-                    firebaseRepository.syncRaffle(raffle, tickets)
+                val tickets = repository.getTicketsByRaffleId(raffle.id).first()
+                val cloudId = firebaseRepository.syncRaffle(raffle, tickets)
+                if (raffle.cloudId == null) {
+                    repository.updateRaffle(raffle.copy(cloudId = cloudId))
                 }
             }
             
-            // Then, fetch everything from cloud to local to ensure we have cloud-only data
-            val cloudRaffles = firebaseRepository.fetchAllRaffles()
+            // Pull cloud data
+            val cloudRaffles = firebaseRepository.fetchAllUserRaffles()
             cloudRaffles.forEach { (raffle, cloudTickets) ->
-                // Save/Update in local Room
-                val localId = repository.insertRaffle(raffle.copy(userId = auth.currentUser?.uid))
-                
-                // RECONSTRUCT FULL TICKET LIST:
-                // We need the full grid (maxNumber), merging assigned cloud tickets with available ones
+                val localId = repository.insertRaffle(raffle)
                 val fullTickets = (0 until raffle.maxNumber).map { number ->
                     cloudTickets.find { it.number == number } ?: Ticket(raffleId = localId, number = number)
                 }
                 repository.insertTickets(fullTickets)
+            }
+        }
+    }
+
+    fun joinRaffle(cloudId: String) {
+        if (auth.currentUser == null) return
+        viewModelScope.launch {
+            val result = firebaseRepository.joinRaffle(cloudId)
+            if (result != null) {
+                val (raffle, cloudTickets) = result
+                val localId = repository.insertRaffle(raffle)
+                val fullTickets = (0 until raffle.maxNumber).map { number ->
+                    cloudTickets.find { it.number == number } ?: Ticket(raffleId = localId, number = number)
+                }
+                repository.insertTickets(fullTickets)
+                syncAllToCloud()
             }
         }
     }
@@ -162,7 +175,10 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
             val raffle = repository.getRaffleById(raffleId)
             val tickets = repository.getTicketsByRaffleId(raffleId).first()
             if (raffle != null) {
-                firebaseRepository.syncRaffle(raffle, tickets)
+                val cloudId = firebaseRepository.syncRaffle(raffle, tickets)
+                if (raffle.cloudId == null) {
+                    repository.updateRaffle(raffle.copy(cloudId = cloudId))
+                }
             }
         }
     }

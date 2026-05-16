@@ -123,6 +123,9 @@ class MainActivity : ComponentActivity() {
                                     navController.navigate("auth") {
                                         popUpTo("list") { inclusive = true }
                                     }
+                                },
+                                onJoinRaffle = { code ->
+                                    viewModel.joinRaffle(code)
                                 }
                             )
                         }

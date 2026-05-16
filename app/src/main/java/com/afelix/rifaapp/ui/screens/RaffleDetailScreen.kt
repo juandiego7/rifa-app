@@ -1,5 +1,6 @@
 package com.afelix.rifaapp.ui.screens
 
+import android.content.Intent
 import android.view.View
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -128,6 +129,18 @@ fun RaffleDetailScreen(
                         if (raffle.status == RaffleStatus.ACTIVE) {
                             IconButton(onClick = onDrawWinner) {
                                 Icon(Icons.Default.Casino, contentDescription = "Realizar Sorteo", tint = MaterialTheme.colorScheme.primary)
+                            }
+                        }
+                        if (raffle.cloudId != null) {
+                            IconButton(onClick = {
+                                val intent = Intent(Intent.ACTION_SEND).apply {
+                                    type = "text/plain"
+                                    val message = "¡Ayúdame a vender esta rifa! Únete usando este código en Rifa App: ${raffle.cloudId}"
+                                    putExtra(Intent.EXTRA_TEXT, message)
+                                }
+                                context.startActivity(Intent.createChooser(intent, "Compartir Código de Colaborador"))
+                            }) {
+                                Icon(Icons.Default.PersonAdd, contentDescription = "Compartir Código de Colaborador")
                             }
                         }
                         IconButton(onClick = { isSearchExpanded = !isSearchExpanded }) {
