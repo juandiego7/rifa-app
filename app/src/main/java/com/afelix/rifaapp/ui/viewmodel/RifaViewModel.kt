@@ -29,7 +29,7 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
     private val _userFilter = MutableStateFlow<String?>(auth.currentUser?.uid)
 
     val raffles: StateFlow<List<Raffle>> = _userFilter.flatMapLatest { userId ->
-        repository.getRaffles(userId).flatMapLatest { raffleList ->
+        getRafflesUseCase(userId).flatMapLatest { raffleList ->
             if (raffleList.isEmpty()) return@flatMapLatest flowOf(emptyList<Raffle>())
             
             val flows = raffleList.map { raffle ->
