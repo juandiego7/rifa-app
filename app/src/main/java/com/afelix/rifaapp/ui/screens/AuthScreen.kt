@@ -46,13 +46,22 @@ fun AuthScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // App Logo
-            Image(
-                painter = painterResource(id = R.drawable.logo_afelix),
-                contentDescription = null,
-                modifier = Modifier.size(150.dp),
-                contentScale = ContentScale.Fit
-            )
+            // App Icon
+            Surface(
+                modifier = Modifier.size(120.dp),
+                shape = RoundedCornerShape(28.dp),
+                color = Color(0xFF00B59C), // Matching the icon background color
+                shadowElevation = 4.dp
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                        contentDescription = "App Icon",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(32.dp))
 
