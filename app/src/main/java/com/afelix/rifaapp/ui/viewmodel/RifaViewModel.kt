@@ -167,12 +167,6 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
                         cloudTickets.find { it.number == number } ?: Ticket(raffleId = localId, number = number)
                     }
                     repository.insertTickets(fullTickets)
-
-                    // IMPORTANT: If this is the currently viewed raffle, update the reference
-                    if (_selectedRaffle.value?.cloudId == cloudRaffle.cloudId || 
-                        (_selectedRaffle.value?.title == cloudRaffle.title && _selectedRaffle.value?.createdAt == cloudRaffle.createdAt)) {
-                        _selectedRaffle.value = raffleToInsert.copy(id = localId)
-                    }
                 }
             } catch (e: Exception) {
                 // Si falla la nube por permisos, al menos no se cierra la app
