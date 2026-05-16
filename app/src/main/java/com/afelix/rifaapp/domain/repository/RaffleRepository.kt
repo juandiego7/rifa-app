@@ -5,7 +5,8 @@ import com.afelix.rifaapp.domain.model.Ticket
 import kotlinx.coroutines.flow.Flow
 
 interface RaffleRepository {
-    fun getRaffles(userId: String?): Flow<List<Raffle>>
+    fun getRaffles(userId: String): Flow<List<Raffle>>
+    fun getGuestRaffles(): Flow<List<Raffle>>
     fun getAllRaffles(): Flow<List<Raffle>>
     suspend fun getRaffleById(id: Long): Raffle?
     suspend fun getRaffleByCloudId(cloudId: String): Raffle?

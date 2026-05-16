@@ -133,29 +133,17 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
                 // Fetch Pending Invitations
                 _pendingInvitations.value = firebaseRepository.fetchPendingInvitations()
 
-                // Push local data
-                repository.getAllRaffles().first().forEach { raffle ->
-                    val tickets = repository.getTicketsByRaffleId(raffle.id).first()
-                    val cloudId = firebaseRepository.syncRaffle(raffle, tickets)
-                    if (raffle.cloudId == null) {
-                        repository.updateRaffle(raffle.copy(cloudId = cloudId))
-                    }
-                }
-                
-                // Pull cloud data
+                // Pull cloud data (This is now our primary source of truth when logged in)
                 val cloudRaffles = firebaseRepository.fetchAllUserRaffles()
                 cloudRaffles.forEach { (cloudRaffle, cloudTickets) ->
-                    // 1. DEDUPLICATION: Precise match using cloudId OR createdAt
+                    // DEDUPLICATION: Precise match using cloudId
                     val allLocal = repository.getAllRaffles().first()
-                    val existingLocal = allLocal.find { 
-                        it.cloudId == cloudRaffle.cloudId || 
-                        (it.createdAt > 0 && it.createdAt == cloudRaffle.createdAt)
-                    }
+                    val existingLocal = allLocal.find { it.cloudId == cloudRaffle.cloudId }
                     
                     val raffleToInsert = if (existingLocal != null) {
                         cloudRaffle.copy(id = existingLocal.id)
                     } else {
-                        cloudRaffle.copy(id = 0) // New local entry
+                        cloudRaffle.copy(id = 0)
                     }
                     
                     val localId = repository.insertRaffle(raffleToInsert)

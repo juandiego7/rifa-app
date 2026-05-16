@@ -9,7 +9,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
 class GetRafflesUseCase(private val repository: RaffleRepository) {
-    operator fun invoke(userId: String?): Flow<List<Raffle>> = repository.getRaffles(userId)
+    operator fun invoke(userId: String?): Flow<List<Raffle>> = 
+        if (userId != null) repository.getRaffles(userId) else repository.getGuestRaffles()
 }
 
 class CreateRaffleUseCase(private val repository: RaffleRepository) {
