@@ -14,6 +14,7 @@ import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 
 sealed class AuthState {
     object Initial : AuthState()
@@ -65,7 +66,8 @@ class AuthViewModel : ViewModel() {
                 val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
                 val firebaseCredential = GoogleAuthProvider.getCredential(googleIdTokenCredential.idToken, null)
                 
-                auth.signInWithCredential(firebaseCredential)
+                // IMPORTANTE: Esperar a que Firebase termine el login antes de cambiar el estado
+                auth.signInWithCredential(firebaseCredential).await()
                 _authState.value = AuthState.Authenticated
             } else {
                 _authState.value = AuthState.Error("Tipo recibido: ${credential.type}")
