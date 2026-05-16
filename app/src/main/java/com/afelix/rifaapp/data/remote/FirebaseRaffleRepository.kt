@@ -104,19 +104,23 @@ class FirebaseRaffleRepository {
     suspend fun fetchAllUserRaffles(): List<Pair<Raffle, List<Ticket>>> {
         val user = auth.currentUser ?: return emptyList()
         
-        // Fetch raffles where user is owner OR collaborator
+        // 1. Fetch from NEW collaborative collection
         val ownedQuery = firestore.collection("raffles").whereEqualTo("ownerId", user.uid).get()
         val collabQuery = firestore.collection("raffles").whereArrayContains("collaborators", user.uid).get()
         
-        val snapshots = listOf(ownedQuery.await(), collabQuery.await())
+        // 2. Fetch from OLD user-specific collection (Migration support)
+        val oldCollection = firestore.collection("users").document(user.uid).collection("raffles").get()
+        
+        val snapshots = listOf(ownedQuery.await(), collabQuery.await(), oldCollection.await())
         val result = mutableListOf<Pair<Raffle, List<Ticket>>>()
         
         val processedIds = mutableSetOf<String>()
 
         for (snapshot in snapshots) {
             for (doc in snapshot.documents) {
-                if (processedIds.contains(doc.id)) continue
-                processedIds.add(doc.id)
+                val cloudId = doc.id
+                if (processedIds.contains(cloudId)) continue
+                processedIds.add(cloudId)
                 
                 val raffle = Raffle(
                     title = doc.getString("title") ?: "",
@@ -128,11 +132,12 @@ class FirebaseRaffleRepository {
                     drawDate = doc.getLong("drawDate") ?: 0L,
                     status = com.afelix.rifaapp.domain.model.RaffleStatus.valueOf(doc.getString("status") ?: "ACTIVE"),
                     winningNumber = doc.getLong("winningNumber")?.toInt(),
-                    userId = doc.getString("ownerId"),
-                    cloudId = doc.id,
-                    ownerEmail = doc.getString("ownerEmail")
+                    userId = doc.getString("ownerId") ?: user.uid,
+                    cloudId = cloudId,
+                    ownerEmail = doc.getString("ownerEmail") ?: user.email
                 )
                 
+                // Fetch tickets (Works for both old and new structure as they use the same subcollection name)
                 val ticketsSnapshot = doc.reference.collection("tickets").get().await()
                 val tickets = ticketsSnapshot.documents.map { tDoc ->
                     Ticket(
@@ -144,6 +149,11 @@ class FirebaseRaffleRepository {
                     )
                 }
                 result.add(raffle to tickets)
+                
+                // If it was in the OLD collection, sync it to the NEW one automatically
+                if (snapshot == snapshots[2]) {
+                    syncRaffle(raffle, tickets)
+                }
             }
         }
         return result
