@@ -58,16 +58,20 @@ class AuthViewModel : ViewModel() {
 
     private suspend fun handleSignIn(result: GetCredentialResponse) {
         val credential = result.credential
-        if (credential is GoogleIdTokenCredential) {
-            val firebaseCredential = GoogleAuthProvider.getCredential(credential.idToken, null)
-            try {
+        
+        try {
+            // Usamos el método recomendado para extraer la credencial de Google
+            if (credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                val firebaseCredential = GoogleAuthProvider.getCredential(googleIdTokenCredential.idToken, null)
+                
                 auth.signInWithCredential(firebaseCredential)
                 _authState.value = AuthState.Authenticated
-            } catch (e: Exception) {
-                _authState.value = AuthState.Error("Fallo en Firebase: ${e.message}")
+            } else {
+                _authState.value = AuthState.Error("Tipo recibido: ${credential.type}")
             }
-        } else {
-            _authState.value = AuthState.Error("Tipo de credencial no soportado")
+        } catch (e: Exception) {
+            _authState.value = AuthState.Error("Error al procesar: ${e.message}")
         }
     }
 
