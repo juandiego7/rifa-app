@@ -153,9 +153,10 @@ class FirebaseRaffleRepository {
                 }
                 result.add(raffle to tickets)
                 
-                // If it was in the OLD collection, sync it to the NEW one automatically
+                // If it was in the OLD collection, sync it to the NEW one and DELETE the old one
                 if (snapshot == snapshots[2]) {
                     syncRaffle(raffle, tickets)
+                    doc.reference.delete().await()
                 }
             }
         }

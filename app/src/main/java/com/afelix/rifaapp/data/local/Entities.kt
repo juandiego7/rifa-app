@@ -2,13 +2,17 @@ package com.afelix.rifaapp.data.local
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.afelix.rifaapp.domain.model.Raffle
 import com.afelix.rifaapp.domain.model.RaffleStatus
 import com.afelix.rifaapp.domain.model.Ticket
 import com.afelix.rifaapp.domain.model.TicketStatus
 
-@Entity(tableName = "raffles")
+@Entity(
+    tableName = "raffles",
+    indices = [Index(value = ["cloudId"], unique = true)]
+)
 data class RaffleEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val title: String,
