@@ -6,13 +6,13 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
@@ -353,13 +353,11 @@ fun RaffleDetailScreen(
         }
 
         // Hidden capture box for winner card
-            // We give it a fixed width and keep it off-screen so it can be measured properly
-            Box(modifier = Modifier.width(360.dp).wrapContentHeight().offset(x = 2000.dp)) {
-                if (raffle.status == RaffleStatus.FINISHED) {
-                    ViewCaptureWrapper<View>(onViewReady = { winnerCaptureView = it }) {
-                        val winnerTicket = tickets.find { it.number == raffle.winningNumber }
-                        WinnerCard(raffle = raffle, winnerTicket = winnerTicket)
-                    }
+        Box(modifier = Modifier.width(360.dp).wrapContentHeight().offset(x = 2000.dp)) {
+            if (raffle.status == RaffleStatus.FINISHED) {
+                ViewCaptureWrapper<View>(onViewReady = { winnerCaptureView = it }) {
+                    val winnerTicket = tickets.find { it.number == raffle.winningNumber }
+                    WinnerCard(raffle = raffle, winnerTicket = winnerTicket)
                 }
             }
         }
@@ -651,8 +649,8 @@ fun TicketCircle(
                         text = ticket.number.toString().padStart(digits, '0'),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        fontSize = if (digits > 3) 9.sp else 12.sp,
-                        lineHeight = if (digits > 3) 10.sp else 14.sp
+                        fontSize = if (digits > 3) {9.sp} else 12.sp,
+                        lineHeight = if (digits > 3) {10.sp} else 14.sp
                     )
                     if (showName && !ticket.customerName.isNullOrBlank()) {
                         Text(
