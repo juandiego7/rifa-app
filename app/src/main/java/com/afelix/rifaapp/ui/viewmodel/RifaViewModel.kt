@@ -135,13 +135,18 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
                 // Pull cloud data
                 val cloudRaffles = firebaseRepository.fetchAllUserRaffles()
                 cloudRaffles.forEach { (cloudRaffle, cloudTickets) ->
-                    // Check if we already have it locally via cloudId
-                    val existingLocal = cloudRaffle.cloudId?.let { repository.getRaffleByCloudId(it) }
+                    // 1. DEDUPLICATION: Try to match existing local raffle
+                    // Match by cloudId OR by Title + Date (for newly synced raffles)
+                    val allLocal = repository.getAllRaffles().first()
+                    val existingLocal = allLocal.find { 
+                        it.cloudId == cloudRaffle.cloudId || 
+                        (it.title == cloudRaffle.title && it.drawDate == cloudRaffle.drawDate)
+                    }
                     
                     val raffleToInsert = if (existingLocal != null) {
                         cloudRaffle.copy(id = existingLocal.id)
                     } else {
-                        cloudRaffle
+                        cloudRaffle.copy(id = 0) // New local entry
                     }
                     
                     val localId = repository.insertRaffle(raffleToInsert)
