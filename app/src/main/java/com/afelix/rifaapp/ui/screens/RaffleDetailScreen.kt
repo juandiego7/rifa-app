@@ -1,14 +1,11 @@
 package com.afelix.rifaapp.ui.screens
 
-import android.content.Intent
 import android.view.View
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.foundation.lazy.grid.GridCells
-import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
@@ -20,6 +17,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,8 +39,8 @@ import com.afelix.rifaapp.domain.model.RaffleDashboardStats
 import com.afelix.rifaapp.domain.model.RaffleStatus
 import com.afelix.rifaapp.domain.model.Ticket
 import com.afelix.rifaapp.domain.model.TicketStatus
-import com.afelix.rifaapp.ui.components.ShareableGrid
 import com.afelix.rifaapp.ui.components.WinnerCard
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -64,8 +62,6 @@ fun RaffleDetailScreen(
     if (raffle == null) return
 
     val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
-    // Local raffles have null ownerId, so current user is owner. 
-    // Cloud raffles must match ownerId with current UID.
     val isOwner = raffle.ownerId == null || (auth.currentUser != null && raffle.ownerId == auth.currentUser?.uid)
 
     val context = LocalContext.current
@@ -185,9 +181,7 @@ fun RaffleDetailScreen(
                 modifier = Modifier.weight(1f)
             ) {
                 if (selectedTabIndex == 0) {
-                    // TAB 1: TICKETS
                     Column(modifier = Modifier.fillMaxSize()) {
-                        // Search Bar (Toggleable)
                         if (isSearchExpanded) {
                             OutlinedTextField(
                                 value = searchQuery,
@@ -268,7 +262,6 @@ fun RaffleDetailScreen(
                         }
                     }
                 } else {
-                    // TAB 2: MANAGEMENT
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -276,11 +269,7 @@ fun RaffleDetailScreen(
                             .verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        DashboardSection(
-                            raffle = raffle, 
-                            stats = stats, 
-                            onShareWinner = { shareWinnerImage() }
-                        )
+                        DashboardSection(raffle = raffle, stats = stats, onShareWinner = { shareWinnerImage() })
 
                         Text("Herramientas de Venta", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                         
@@ -324,8 +313,8 @@ fun RaffleDetailScreen(
 
                             var showInviteDialog by remember { mutableStateOf(false) }
                             var inviteEmail by remember { mutableStateOf("") }
-                            val scope = rememberCoroutineScope()
                             val snackbarHostState = remember { SnackbarHostState() }
+                            val scope = rememberCoroutineScope()
                             
                             if (showInviteDialog) {
                                 AlertDialog(
@@ -340,7 +329,6 @@ fun RaffleDetailScreen(
                                                 label = { Text("Correo Electrónico") },
                                                 modifier = Modifier.fillMaxWidth()
                                             )
-                                            // AdBanner inside Dialog
                                             com.afelix.rifaapp.ui.components.AdBanner()
                                         }
                                     },
@@ -351,7 +339,6 @@ fun RaffleDetailScreen(
                                                 onInviteCollaborator(inviteEmail)
                                                 showInviteDialog = false
                                                 inviteEmail = ""
-                                                // Show a snackbar message
                                                 scope.launch {
                                                     snackbarHostState.showSnackbar(
                                                         message = "Invitación enviada con éxito",
@@ -384,7 +371,6 @@ fun RaffleDetailScreen(
                             }
                         }
 
-                        // Collaborators List (Only visible to owner)
                         if (isOwner && collaborators.isNotEmpty()) {
                             Text("Colaboradores", style = MaterialTheme.typography.labelLarge, color = Color.Gray)
                             collaborators.forEach { collaborator ->
@@ -411,7 +397,6 @@ fun RaffleDetailScreen(
                             }
                         }
 
-
                         if (isOwner && raffle.status == RaffleStatus.ACTIVE) {
                             Button(
                                 onClick = onDrawWinner,
@@ -429,239 +414,87 @@ fun RaffleDetailScreen(
             }
         }
 
-        // Hidden capture box for winner card
+        Box(modifier = Modifier.width(360.dp).wrapContentHeight().offset(x = 2000.dp)) {
+            if (raffle.status == RaffleStatus.FINISHED) {
+                ViewCaptureWrapper<View>(onViewReady = { winnerCaptureView = it }) {
+                    val winnerTicket = tickets.find { it.number == raffle.winningNumber }
+                    WinnerCard(raffle = raffle, winnerTicket = winnerTicket)
+                }
+            }
+        }
+    }
+}
 
 @Composable
-fun DashboardSection(
-    raffle: Raffle, 
-    stats: RaffleDashboardStats, 
-    onShareWinner: () -> Unit
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 2.dp
-    ) {
+fun DashboardSection(raffle: Raffle, stats: RaffleDashboardStats, onShareWinner: () -> Unit) {
+    Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface, tonalElevation = 2.dp) {
         Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) {
-            // Prize and Date Row (Purple Style)
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = Color(0xFFF3E5F5),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+            Surface(modifier = Modifier.fillMaxWidth(), color = Color(0xFFF3E5F5), shape = RoundedCornerShape(12.dp)) {
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFF7B1FA2), modifier = Modifier.size(16.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "PREMIO", 
-                                style = MaterialTheme.typography.labelMedium, 
-                                color = Color(0xFF7B1FA2), 
-                                fontWeight = FontWeight.Bold, 
-                                fontSize = 9.sp
-                            )
+                            Text(text = "PREMIO", style = MaterialTheme.typography.labelMedium, color = Color(0xFF7B1FA2), fontWeight = FontWeight.Bold, fontSize = 9.sp)
                         }
-                        Text(
-                            text = "Sorteo: ${DateFormatter.format(raffle.drawDate)}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.Gray
-                        )
+                        Text(text = "Sorteo: ${DateFormatter.format(raffle.drawDate)}", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
                     }
-                    
-                    Text(
-                        text = if(raffle.prizeValue > 0) CurrencyFormatter.format(raffle.prizeValue) else raffle.description,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color(0xFF4A148C),
-                        textAlign = TextAlign.Center
-                    )
-
+                    Text(text = if(raffle.prizeValue > 0) CurrencyFormatter.format(raffle.prizeValue) else raffle.description, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold, color = Color(0xFF4A148C), textAlign = TextAlign.Center)
                     if (raffle.status == RaffleStatus.FINISHED && raffle.winningNumber != null) {
                         Spacer(modifier = Modifier.height(6.dp))
                         HorizontalDivider(color = Color(0xFF7B1FA2).copy(alpha = 0.2f), thickness = 1.dp)
                         Spacer(modifier = Modifier.height(6.dp))
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center
-                        ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
                             Icon(Icons.Default.EmojiEvents, null, tint = Color(0xFFF57F17), modifier = Modifier.size(20.dp))
                             Spacer(Modifier.width(8.dp))
-                            Text(
-                                text = "GANADOR: ${raffle.winningNumber.toString().padStart(raffle.digits, '0')}",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Black,
-                                color = Color(0xFFF57F17)
-                            )
+                            Text(text = "GANADOR: ${raffle.winningNumber.toString().padStart(raffle.digits, '0')}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = Color(0xFFF57F17))
                             Spacer(Modifier.width(8.dp))
-                            IconButton(
-                                onClick = onShareWinner,
-                                modifier = Modifier.size(24.dp)
-                            ) {
-                                Icon(
-                                    Icons.Default.Share, 
-                                    contentDescription = "Compartir Ganador", 
-                                    tint = Color(0xFFF57F17),
-                                    modifier = Modifier.size(18.dp)
-                                )
+                            IconButton(onClick = onShareWinner, modifier = Modifier.size(24.dp)) {
+                                Icon(Icons.Default.Share, contentDescription = "Compartir Ganador", tint = Color(0xFFF57F17), modifier = Modifier.size(18.dp))
                             }
                         }
                     }
                 }
             }
-            
             Spacer(modifier = Modifier.height(6.dp))
-            
-            // Financial and Tickets Stats
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                CompactInfoCard(
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Default.CheckCircle,
-                    label = "Vendidas",
-                    value = stats.soldTickets.toString(),
-                    color = Color.Black,
-                    backgroundColor = Color(0xFF81C784),
-                    isLarge = true
-                )
-                CompactInfoCard(
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Default.Schedule,
-                    label = "Reservadas",
-                    value = stats.reservedTickets.toString(),
-                    color = Color.Black,
-                    backgroundColor = Color(0xFFFFD54F),
-                    isLarge = true
-                )
-                CompactInfoCard(
-                    modifier = Modifier.weight(1f),
-                    icon = Icons.Default.RadioButtonUnchecked,
-                    label = "Disponibles",
-                    value = stats.availableTickets.toString(),
-                    color = Color.Black,
-                    backgroundColor = MaterialTheme.colorScheme.surfaceVariant,
-                    isLarge = true
-                )
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                CompactInfoCard(modifier = Modifier.weight(1f), icon = Icons.Default.CheckCircle, label = "Vendidas", value = stats.soldTickets.toString(), color = Color.Black, backgroundColor = Color(0xFF81C784), isLarge = true)
+                CompactInfoCard(modifier = Modifier.weight(1f), icon = Icons.Default.Schedule, label = "Reservadas", value = stats.reservedTickets.toString(), color = Color.Black, backgroundColor = Color(0xFFFFD54F), isLarge = true)
+                CompactInfoCard(modifier = Modifier.weight(1f), icon = Icons.Default.RadioButtonUnchecked, label = "Disponibles", value = stats.availableTickets.toString(), color = Color.Black, backgroundColor = MaterialTheme.colorScheme.surfaceVariant, isLarge = true)
             }
         }
     }
 }
 
 @Composable
-fun CompactInfoCard(
-    modifier: Modifier,
-    icon: ImageVector,
-    label: String,
-    value: String,
-    color: Color,
-    backgroundColor: Color,
-    isLarge: Boolean = false
-) {
-    Surface(
-        modifier = modifier,
-        color = backgroundColor,
-        shape = RoundedCornerShape(8.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(vertical = if (isLarge) 8.dp else 6.dp, horizontal = 4.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+fun CompactInfoCard(modifier: Modifier, icon: ImageVector, label: String, value: String, color: Color, backgroundColor: Color, isLarge: Boolean = false) {
+    Surface(modifier = modifier, color = backgroundColor, shape = RoundedCornerShape(8.dp)) {
+        Column(modifier = Modifier.padding(vertical = if (isLarge) 8.dp else 6.dp, horizontal = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(icon, contentDescription = null, tint = color, modifier = Modifier.size(if (isLarge) 16.dp else 12.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(
-                    text = label, 
-                    style = MaterialTheme.typography.labelSmall, 
-                    fontSize = if (isLarge) 11.sp else 8.sp, 
-                    color = color.copy(alpha = 0.8f),
-                    fontWeight = FontWeight.Bold
-                )
+                Text(text = label, style = MaterialTheme.typography.labelSmall, fontSize = if (isLarge) 11.sp else 8.sp, color = color.copy(alpha = 0.8f), fontWeight = FontWeight.Bold)
             }
-            Text(
-                text = value, 
-                style = MaterialTheme.typography.bodySmall, 
-                fontWeight = FontWeight.Black, 
-                color = color, 
-                fontSize = if (isLarge) 14.sp else 10.sp
-            )
+            Text(text = value, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Black, color = color, fontSize = if (isLarge) 14.sp else 10.sp)
         }
     }
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TicketListItem(
-    ticket: Ticket,
-    digits: Int,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit
-) {
-    val formattedNumber = ticket.number.toString().padStart(digits, '0')
-    
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick
-            ),
-        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) else Color.Transparent,
-        shape = RoundedCornerShape(8.dp)
-    ) {
-        Row(
-            modifier = Modifier.padding(vertical = 2.dp, horizontal = 4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Visual circle without name in list mode
-            TicketCircle(
-                ticket = ticket,
-                digits = digits,
-                isSelected = isSelected,
-                showBadge = false,
-                showName = false, // Hide name in list mode
-                onClick = onClick,
-                onLongClick = onLongClick,
-                modifier = Modifier.size(32.dp)
-            )
-            
+fun TicketListItem(ticket: Ticket, digits: Int, isSelected: Boolean, onClick: () -> Unit, onLongClick: () -> Unit) {
+    Surface(modifier = Modifier.fillMaxWidth().combinedClickable(onClick = onClick, onLongClick = onLongClick), color = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) else Color.Transparent, shape = RoundedCornerShape(8.dp)) {
+        Row(modifier = Modifier.padding(vertical = 2.dp, horizontal = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+            TicketCircle(ticket = ticket, digits = digits, isSelected = isSelected, showBadge = false, showName = false, onClick = onClick, onLongClick = onLongClick, modifier = Modifier.size(32.dp))
             Spacer(modifier = Modifier.width(12.dp))
-            
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = if (ticket.status == TicketStatus.AVAILABLE) "Disponible" else (ticket.customerName ?: "Sin nombre"),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = if (ticket.status == TicketStatus.AVAILABLE) FontWeight.Normal else FontWeight.Bold,
-                    color = if (ticket.status == TicketStatus.AVAILABLE) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1
-                )
-                
+                Text(text = if (ticket.status == TicketStatus.AVAILABLE) "Disponible" else (ticket.customerName ?: "Sin nombre"), style = MaterialTheme.typography.bodyMedium, fontWeight = if (ticket.status == TicketStatus.AVAILABLE) FontWeight.Normal else FontWeight.Bold, color = if (ticket.status == TicketStatus.AVAILABLE) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f) else MaterialTheme.colorScheme.onSurface, maxLines = 1)
                 if (!ticket.customerPhone.isNullOrBlank()) {
-                    Text(
-                        text = ticket.customerPhone,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 10.sp
-                    )
+                    Text(text = ticket.customerPhone, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, fontSize = 10.sp)
                 }
             }
-            
             if (isSelected) {
-                Icon(
-                    Icons.Default.Check,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
+                Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
             }
         }
     }
@@ -669,16 +502,7 @@ fun TicketListItem(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TicketCircle(
-    ticket: Ticket,
-    digits: Int,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit = {},
-    isSelected: Boolean = false,
-    showBadge: Boolean = true,
-    showName: Boolean = false,
-    modifier: Modifier = Modifier
-) {
+fun TicketCircle(ticket: Ticket, digits: Int, onClick: () -> Unit, onLongClick: () -> Unit = {}, isSelected: Boolean = false, showBadge: Boolean = true, showName: Boolean = false, modifier: Modifier = Modifier) {
     val backgroundColor = when {
         isSelected -> MaterialTheme.colorScheme.primaryContainer
         ticket.status == TicketStatus.AVAILABLE -> MaterialTheme.colorScheme.surfaceVariant
@@ -686,69 +510,25 @@ fun TicketCircle(
         ticket.status == TicketStatus.PAID -> Color(0xFF81C784)
         else -> MaterialTheme.colorScheme.surfaceVariant
     }
-    
     val contentColor = when {
         isSelected -> MaterialTheme.colorScheme.onPrimaryContainer
         ticket.status == TicketStatus.AVAILABLE -> MaterialTheme.colorScheme.onSurfaceVariant
         else -> Color.Black
     }
-    
     Box(modifier = modifier.padding(1.dp), contentAlignment = Alignment.TopEnd) {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            shape = CircleShape,
-            color = backgroundColor,
-            contentColor = contentColor,
-            tonalElevation = if (isSelected) 4.dp else 1.dp,
-            shadowElevation = if (isSelected) { if (showBadge) 6.dp else 0.dp } else 2.dp,
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .combinedClickable(
-                        onClick = onClick,
-                        onLongClick = onLongClick
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
+        Surface(modifier = Modifier.fillMaxSize(), shape = CircleShape, color = backgroundColor, contentColor = contentColor, tonalElevation = if (isSelected) 4.dp else 1.dp, shadowElevation = if (isSelected) { if (showBadge) 6.dp else 0.dp } else 2.dp) {
+            Box(modifier = Modifier.fillMaxSize().combinedClickable(onClick = onClick, onLongClick = onLongClick), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = ticket.number.toString().padStart(digits, '0'),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = if (digits > 3) {9.sp} else 12.sp,
-                        lineHeight = if (digits > 3) {10.sp} else 14.sp
-                    )
+                    Text(text = ticket.number.toString().padStart(digits, '0'), style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, fontSize = if (digits > 3) 9.sp else 12.sp, lineHeight = if (digits > 3) 10.sp else 14.sp)
                     if (showName && !ticket.customerName.isNullOrBlank()) {
-                        Text(
-                            text = ticket.customerName,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontSize = 8.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.padding(horizontal = 4.dp),
-                            textAlign = TextAlign.Center,
-                            lineHeight = 9.sp
-                        )
+                        Text(text = ticket.customerName, style = MaterialTheme.typography.labelSmall, fontSize = 8.sp, maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.padding(horizontal = 4.dp), textAlign = TextAlign.Center, lineHeight = 9.sp)
                     }
                 }
             }
         }
-        
         if (isSelected && showBadge) {
-            Box(
-                modifier = Modifier
-                    .size(14.dp)
-                    .offset(x = (1).dp, y = (-1).dp)
-                    .background(MaterialTheme.colorScheme.primary, CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Default.Check,
-                    contentDescription = null,
-                    modifier = Modifier.size(10.dp),
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
+            Box(modifier = Modifier.size(14.dp).offset(x = 1.dp, y = (-1).dp).background(MaterialTheme.colorScheme.primary, CircleShape), contentAlignment = Alignment.Center) {
+                Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(10.dp), tint = MaterialTheme.colorScheme.onPrimary)
             }
         }
     }
