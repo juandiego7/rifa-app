@@ -294,9 +294,23 @@ fun RaffleDetailScreen(
                         }
                     }
 
-                    Text("Equipo y Sorteo", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-
                     if (isOwner) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "Eres el administrador de esta rifa",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(8.dp),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                        
+                        Text("Equipo y Sorteo", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+
                         var showInviteDialog by remember { mutableStateOf(false) }
                         var inviteEmail by remember { mutableStateOf("") }
                         
