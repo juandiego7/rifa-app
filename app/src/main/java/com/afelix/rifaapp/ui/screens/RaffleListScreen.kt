@@ -81,6 +81,37 @@ fun RaffleListScreen(
         )
     }
 
+    var showLogoutDialog by remember { mutableStateOf(false) }
+
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false },
+            title = { Text("Cerrar Sesión") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("¿Estás seguro de que deseas cerrar sesión? Tendrás que volver a ingresar tus credenciales para acceder a tus rifas en la nube.")
+                    com.afelix.rifaapp.ui.components.AdBanner()
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLogoutDialog = false
+                        onLogout()
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Cerrar Sesión")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
     var showJoinDialog by remember { mutableStateOf(false) }
     var joinCode by remember { mutableStateOf("") }
     var showInvitationsDialog by remember { mutableStateOf(false) }
@@ -208,7 +239,7 @@ fun RaffleListScreen(
                             }
                         }
                     }
-                    IconButton(onClick = onLogout) {
+                    IconButton(onClick = { if (currentUser != null) showLogoutDialog = true else onLogout() }) {
                         Icon(
                             imageVector = if (currentUser != null) Icons.AutoMirrored.Filled.Logout else Icons.AutoMirrored.Filled.Login,
                             contentDescription = if (currentUser != null) "Cerrar Sesión" else "Iniciar Sesión"
