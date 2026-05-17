@@ -320,54 +320,55 @@ fun RaffleDetailScreen(
                                 Text("Equipo y Sorteo", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
                                 var showInviteDialog by remember { mutableStateOf(false) }
-                            var inviteEmail by remember { mutableStateOf("") }
-                            
-                            if (showInviteDialog) {
-                                AlertDialog(
-                                    onDismissRequest = { showInviteDialog = false },
-                                    title = { Text("Invitar Colaborador") },
-                                    text = {
-                                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                            Text("Ingresa el correo de la persona que te ayudará a vender:")
-                                            OutlinedTextField(
-                                                value = inviteEmail,
-                                                onValueChange = { inviteEmail = it },
-                                                label = { Text("Correo Electrónico") },
-                                                modifier = Modifier.fillMaxWidth()
-                                            )
-                                            com.afelix.rifaapp.ui.components.AdBanner()
-                                        }
-                                    },
-                                    confirmButton = {
-                                        TextButton(
-                                            enabled = inviteEmail.isNotBlank(),
-                                            onClick = {
-                                                onInviteCollaborator(inviteEmail)
-                                                showInviteDialog = false
-                                                inviteEmail = ""
-                                                scope.launch {
-                                                    snackbarHostState.showSnackbar(
-                                                        message = "Invitación enviada con éxito",
-                                                        duration = SnackbarDuration.Short
-                                                    )
-                                                }
+                                var inviteEmail by remember { mutableStateOf("") }
+                                
+                                if (showInviteDialog) {
+                                    AlertDialog(
+                                        onDismissRequest = { showInviteDialog = false },
+                                        title = { Text("Invitar Colaborador") },
+                                        text = {
+                                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                                Text("Ingresa el correo de la persona que te ayudará a vender:")
+                                                OutlinedTextField(
+                                                    value = inviteEmail,
+                                                    onValueChange = { inviteEmail = it },
+                                                    label = { Text("Correo Electrónico") },
+                                                    modifier = Modifier.fillMaxWidth()
+                                                )
+                                                com.afelix.rifaapp.ui.components.AdBanner()
                                             }
-                                        ) { Text("Enviar Invitación") }
-                                    },
-                                    dismissButton = {
-                                        TextButton(onClick = { showInviteDialog = false }) { Text("Cancelar") }
-                                    }
-                                )
-                            }
+                                        },
+                                        confirmButton = {
+                                            TextButton(
+                                                enabled = inviteEmail.isNotBlank(),
+                                                onClick = {
+                                                    onInviteCollaborator(inviteEmail)
+                                                    showInviteDialog = false
+                                                    inviteEmail = ""
+                                                    scope.launch {
+                                                        snackbarHostState.showSnackbar(
+                                                            message = "Invitación enviada con éxito",
+                                                            duration = SnackbarDuration.Short
+                                                        )
+                                                    }
+                                                }
+                                            ) { Text("Enviar Invitación") }
+                                        },
+                                        dismissButton = {
+                                            TextButton(onClick = { showInviteDialog = false }) { Text("Cancelar") }
+                                        }
+                                    )
+                                }
 
-                            OutlinedButton(
-                                onClick = { showInviteDialog = true },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Icon(Icons.Default.PersonAdd, null)
-                                Spacer(Modifier.width(8.dp))
-                                Text("Invitar Colaborador")
+                                OutlinedButton(
+                                    onClick = { showInviteDialog = true },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Icon(Icons.Default.PersonAdd, null)
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Invitar Colaborador")
+                                }
                             }
                         }
 
