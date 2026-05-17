@@ -372,6 +372,33 @@ fun RaffleDetailScreen(
                         }
 
                         if (isOwner && collaborators.isNotEmpty()) {
+                            var collaboratorToRemove by remember { mutableStateOf<com.afelix.rifaapp.data.remote.Collaborator?>(null) }
+
+                            if (collaboratorToRemove != null) {
+                                AlertDialog(
+                                    onDismissRequest = { collaboratorToRemove = null },
+                                    title = { Text("Eliminar Colaborador") },
+                                    text = {
+                                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                            Text("¿Estás seguro de que deseas eliminar a ${collaboratorToRemove?.email}? Ya no podrá vender boletas en esta rifa.")
+                                            com.afelix.rifaapp.ui.components.AdBanner()
+                                        }
+                                    },
+                                    confirmButton = {
+                                        TextButton(
+                                            onClick = {
+                                                collaboratorToRemove?.let { onRemoveCollaborator(it) }
+                                                collaboratorToRemove = null
+                                            },
+                                            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                                        ) { Text("Eliminar") }
+                                    },
+                                    dismissButton = {
+                                        TextButton(onClick = { collaboratorToRemove = null }) { Text("Cancelar") }
+                                    }
+                                )
+                            }
+
                             Text("Colaboradores", style = MaterialTheme.typography.labelLarge, color = Color.Gray)
                             collaborators.forEach { collaborator ->
                                 Card(
@@ -388,7 +415,7 @@ fun RaffleDetailScreen(
                                             Text(text = "Colaborador", style = MaterialTheme.typography.labelSmall)
                                         }
                                         if (isOwner) {
-                                            IconButton(onClick = { onRemoveCollaborator(collaborator) }) {
+                                            IconButton(onClick = { collaboratorToRemove = collaborator }) {
                                                 Icon(Icons.Default.PersonRemove, null, tint = MaterialTheme.colorScheme.error)
                                             }
                                         }
