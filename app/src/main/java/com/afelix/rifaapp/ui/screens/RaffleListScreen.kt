@@ -57,10 +57,13 @@ fun RaffleListScreen(
             onDismissRequest = { raffleToAction = null },
             title = { Text(if (isOwner) "Eliminar Rifa" else "Salir de Rifa") },
             text = { 
-                Text(
-                    if (isOwner) "¿Estás seguro de que deseas eliminar esta rifa? Esta acción borrará permanentemente todos los datos de la nube."
-                    else "¿Deseas dejar de colaborar en esta rifa? Ya no podrás ver sus boletas ni vender más números."
-                ) 
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(
+                        if (isOwner) "¿Estás seguro de que deseas eliminar esta rifa? Esta acción borrará permanentemente todos los datos de la nube."
+                        else "¿Deseas dejar de colaborar en esta rifa? Ya no podrás ver sus boletas ni vender más números."
+                    )
+                    com.afelix.rifaapp.ui.components.AdBanner()
+                }
             },
             confirmButton = {
                 TextButton(
