@@ -6,6 +6,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.foundation.lazy.grid.GridCells
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -56,7 +57,9 @@ fun RaffleDetailScreen(
     onDrawWinner: () -> Unit,
     onInviteCollaborator: (String) -> Unit,
     collaborators: List<com.afelix.rifaapp.data.remote.Collaborator>,
-    onRemoveCollaborator: (com.afelix.rifaapp.data.remote.Collaborator) -> Unit
+    onRemoveCollaborator: (com.afelix.rifaapp.data.remote.Collaborator) -> Unit,
+    isRefreshing: Boolean = false,
+    onRefresh: () -> Unit = {}
 ) {
     if (raffle == null) return
 
@@ -160,8 +163,13 @@ fun RaffleDetailScreen(
             }
         }
     ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            PrimaryTabRow(selectedTabIndex = selectedTabIndex) {
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            modifier = Modifier.fillMaxSize().padding(padding)
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                PrimaryTabRow(selectedTabIndex = selectedTabIndex) {
                 Tab(
                     selected = selectedTabIndex == 0,
                     onClick = { selectedTabIndex = 0 },

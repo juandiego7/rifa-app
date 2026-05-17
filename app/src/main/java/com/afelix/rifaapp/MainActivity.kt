@@ -191,7 +191,9 @@ class MainActivity : ComponentActivity() {
                                     if (raffle?.cloudId != null) {
                                         viewModel.removeCollaborator(raffle.cloudId, collab.uid, collab.email)
                                     }
-                                }
+                                },
+                                isRefreshing = viewModel.isRefreshing.collectAsState().value,
+                                onRefresh = { viewModel.syncAllToCloud() }
                             )
 
                             if (showDrawWinner && raffle != null) {
