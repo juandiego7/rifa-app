@@ -315,8 +315,8 @@ fun RaffleDetailScreen(
 
                         var showInviteDialog by remember { mutableStateOf(false) }
                         var inviteEmail by remember { mutableStateOf("") }
-                        val snackbarHostState = remember { SnackbarHostState() }
                         val scope = rememberCoroutineScope()
+                        val snackbarHostState = remember { SnackbarHostState() }
                         
                         if (showInviteDialog) {
                             AlertDialog(
@@ -343,7 +343,7 @@ fun RaffleDetailScreen(
                                             showInviteDialog = false
                                             inviteEmail = ""
                                             // Show a snackbar message
-                                            kotlinx.coroutines.MainScope().launch {
+                                            scope.launch {
                                                 snackbarHostState.showSnackbar(
                                                     message = "Invitación enviada con éxito",
                                                     duration = SnackbarDuration.Short
