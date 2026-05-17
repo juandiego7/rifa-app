@@ -51,7 +51,7 @@ fun RaffleListScreen(
     } else null
 
     if ( raffleToAction != null ) {
-        val isOwner = currentUser != null && raffleToAction?.ownerId == currentUser.uid
+        val isOwner = raffleToAction?.ownerId == null || (currentUser != null && raffleToAction?.ownerId == currentUser.uid)
         
         AlertDialog(
             onDismissRequest = { raffleToAction = null },
@@ -264,7 +264,9 @@ fun RaffleItem(
     val currentUser = if (authState is AuthState.Authenticated) {
         com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
     } else null
-    val isOwner = currentUser == null || raffle.ownerId == currentUser.uid || raffle.userId == currentUser.uid
+    
+    // logic: if it's local (ownerId is null) OR the current cloud user matches ownerId
+    val isOwner = raffle.ownerId == null || (currentUser != null && raffle.ownerId == currentUser.uid)
 
     Card(
         modifier = Modifier
