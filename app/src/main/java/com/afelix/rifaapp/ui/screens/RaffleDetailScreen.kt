@@ -427,41 +427,39 @@ fun RaffleDetailScreen(
 
 @Composable
 fun DashboardSection(raffle: Raffle, stats: RaffleDashboardStats, onShareWinner: () -> Unit) {
-    Surface(modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.surface, tonalElevation = 2.dp) {
-        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) {
-            Surface(modifier = Modifier.fillMaxWidth(), color = Color(0xFFF3E5F5), shape = RoundedCornerShape(12.dp)) {
-                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFF7B1FA2), modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(text = "PREMIO", style = MaterialTheme.typography.labelMedium, color = Color(0xFF7B1FA2), fontWeight = FontWeight.Bold, fontSize = 9.sp)
-                        }
-                        Text(text = "Sorteo: ${DateFormatter.format(raffle.drawDate)}", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Surface(modifier = Modifier.fillMaxWidth(), color = Color(0xFFF3E5F5), shape = RoundedCornerShape(12.dp)) {
+            Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFF7B1FA2), modifier = Modifier.size(16.dp))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(text = "PREMIO", style = MaterialTheme.typography.labelMedium, color = Color(0xFF7B1FA2), fontWeight = FontWeight.Bold, fontSize = 9.sp)
                     }
-                    Text(text = if(raffle.prizeValue > 0) CurrencyFormatter.format(raffle.prizeValue) else raffle.description, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold, color = Color(0xFF4A148C), textAlign = TextAlign.Center)
-                    if (raffle.status == RaffleStatus.FINISHED && raffle.winningNumber != null) {
-                        Spacer(modifier = Modifier.height(6.dp))
-                        HorizontalDivider(color = Color(0xFF7B1FA2).copy(alpha = 0.2f), thickness = 1.dp)
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
-                            Icon(Icons.Default.EmojiEvents, null, tint = Color(0xFFF57F17), modifier = Modifier.size(20.dp))
-                            Spacer(Modifier.width(8.dp))
-                            Text(text = "GANADOR: ${raffle.winningNumber.toString().padStart(raffle.digits, '0')}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = Color(0xFFF57F17))
-                            Spacer(Modifier.width(8.dp))
-                            IconButton(onClick = onShareWinner, modifier = Modifier.size(24.dp)) {
-                                Icon(Icons.Default.Share, contentDescription = "Compartir Ganador", tint = Color(0xFFF57F17), modifier = Modifier.size(18.dp))
-                            }
+                    Text(text = "Sorteo: ${DateFormatter.format(raffle.drawDate)}", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                }
+                Text(text = if(raffle.prizeValue > 0) CurrencyFormatter.format(raffle.prizeValue) else raffle.description, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold, color = Color(0xFF4A148C), textAlign = TextAlign.Center)
+                if (raffle.status == RaffleStatus.FINISHED && raffle.winningNumber != null) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    HorizontalDivider(color = Color(0xFF7B1FA2).copy(alpha = 0.2f), thickness = 1.dp)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                        Icon(Icons.Default.EmojiEvents, null, tint = Color(0xFFF57F17), modifier = Modifier.size(20.dp))
+                        Spacer(Modifier.width(8.dp))
+                        Text(text = "GANADOR: ${raffle.winningNumber.toString().padStart(raffle.digits, '0')}", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Black, color = Color(0xFFF57F17))
+                        Spacer(Modifier.width(8.dp))
+                        IconButton(onClick = onShareWinner, modifier = Modifier.size(24.dp)) {
+                            Icon(Icons.Default.Share, contentDescription = "Compartir Ganador", tint = Color(0xFFF57F17), modifier = Modifier.size(18.dp))
                         }
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(6.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                CompactInfoCard(modifier = Modifier.weight(1f), icon = Icons.Default.CheckCircle, label = "Vendidas", value = stats.soldTickets.toString(), color = Color.Black, backgroundColor = Color(0xFF81C784), isLarge = true)
-                CompactInfoCard(modifier = Modifier.weight(1f), icon = Icons.Default.Schedule, label = "Reservadas", value = stats.reservedTickets.toString(), color = Color.Black, backgroundColor = Color(0xFFFFD54F), isLarge = true)
-                CompactInfoCard(modifier = Modifier.weight(1f), icon = Icons.Default.RadioButtonUnchecked, label = "Disponibles", value = stats.availableTickets.toString(), color = Color.Black, backgroundColor = MaterialTheme.colorScheme.surfaceVariant, isLarge = true)
-            }
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            CompactInfoCard(modifier = Modifier.weight(1f), icon = Icons.Default.CheckCircle, label = "Vendidas", value = stats.soldTickets.toString(), color = Color.Black, backgroundColor = Color(0xFF81C784), isLarge = true)
+            CompactInfoCard(modifier = Modifier.weight(1f), icon = Icons.Default.Schedule, label = "Reservadas", value = stats.reservedTickets.toString(), color = Color.Black, backgroundColor = Color(0xFFFFD54F), isLarge = true)
+            CompactInfoCard(modifier = Modifier.weight(1f), icon = Icons.Default.RadioButtonUnchecked, label = "Disponibles", value = stats.availableTickets.toString(), color = Color.Black, backgroundColor = MaterialTheme.colorScheme.surfaceVariant, isLarge = true)
         }
     }
 }
