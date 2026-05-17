@@ -283,7 +283,7 @@ fun RaffleDetailScreen(
                         ) {
                             Icon(Icons.Default.Image, null)
                             Spacer(Modifier.width(8.dp))
-                            Text("Publicidad")
+                            Text("Publicidad", fontSize = 11.sp)
                         }
                         Button(
                             onClick = { PdfExporter.exportRaffleToPdf(context, raffle, tickets) },
@@ -292,7 +292,7 @@ fun RaffleDetailScreen(
                         ) {
                             Icon(Icons.Default.PictureAsPdf, null)
                             Spacer(Modifier.width(8.dp))
-                            Text("Reporte PDF")
+                            Text("Reporte PDF", fontSize = 11.sp)
                         }
                     }
 
@@ -315,21 +315,24 @@ fun RaffleDetailScreen(
 
                         var showInviteDialog by remember { mutableStateOf(false) }
                         var inviteEmail by remember { mutableStateOf("") }
+                        val snackbarHostState = remember { SnackbarHostState() }
+                        val scope = rememberCoroutineScope()
                         
                         if (showInviteDialog) {
                             AlertDialog(
                                 onDismissRequest = { showInviteDialog = false },
                                 title = { Text("Invitar Colaborador") },
                                 text = {
-                                    Column {
+                                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                         Text("Ingresa el correo de la persona que te ayudará a vender:")
-                                        Spacer(Modifier.height(8.dp))
                                         OutlinedTextField(
                                             value = inviteEmail,
                                             onValueChange = { inviteEmail = it },
                                             label = { Text("Correo Electrónico") },
                                             modifier = Modifier.fillMaxWidth()
                                         )
+                                        // AdBanner inside Dialog
+                                        com.afelix.rifaapp.ui.components.AdBanner()
                                     }
                                 },
                                 confirmButton = {
@@ -339,6 +342,13 @@ fun RaffleDetailScreen(
                                             onInviteCollaborator(inviteEmail)
                                             showInviteDialog = false
                                             inviteEmail = ""
+                                            // Show a snackbar message
+                                            scope.launch {
+                                                snackbarHostState.showSnackbar(
+                                                    message = "Invitación enviada con éxito",
+                                                    duration = SnackbarDuration.Short
+                                                )
+                                            }
                                         }
                                     ) { Text("Enviar Invitación") }
                                 },
@@ -348,20 +358,26 @@ fun RaffleDetailScreen(
                             )
                         }
 
-                        OutlinedButton(
-                            onClick = { showInviteDialog = true },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Icon(Icons.Default.PersonAdd, null)
-                            Spacer(Modifier.width(8.dp))
-                            Text("Invitar a Vendedor")
+                        Box {
+                            OutlinedButton(
+                                onClick = { showInviteDialog = true },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Icon(Icons.Default.PersonAdd, null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Invitar Colaborador")
+                            }
+                            SnackbarHost(
+                                hostState = snackbarHostState,
+                                modifier = Modifier.align(Alignment.BottomCenter)
+                            )
                         }
                     }
 
                     // Collaborators List (Only visible to owner)
                     if (isOwner && collaborators.isNotEmpty()) {
-                        Text("Vendedores Colaboradores", style = MaterialTheme.typography.labelLarge, color = Color.Gray)
+                        Text("Colaboradores", style = MaterialTheme.typography.labelLarge, color = Color.Gray)
                         collaborators.forEach { collaborator ->
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
@@ -385,6 +401,7 @@ fun RaffleDetailScreen(
                             }
                         }
                     }
+
 
                     if (isOwner && raffle.status == RaffleStatus.ACTIVE) {
                         Button(
