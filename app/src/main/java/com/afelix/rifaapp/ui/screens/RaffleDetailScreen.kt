@@ -65,6 +65,9 @@ fun RaffleDetailScreen(
     val isOwner = raffle.ownerId == null || (auth.currentUser != null && raffle.ownerId == auth.currentUser?.uid)
 
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
     var selectedIds by remember { mutableStateOf(emptySet<Long>()) }
     var isGridView by remember { mutableStateOf(true) }
     var selectedTabIndex by remember { mutableIntStateOf(0) }
@@ -157,7 +160,8 @@ fun RaffleDetailScreen(
                     }
                 )
             }
-        }
+        },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
             PrimaryTabRow(selectedTabIndex = selectedTabIndex) {
@@ -313,8 +317,6 @@ fun RaffleDetailScreen(
 
                             var showInviteDialog by remember { mutableStateOf(false) }
                             var inviteEmail by remember { mutableStateOf("") }
-                            val snackbarHostState = remember { SnackbarHostState() }
-                            val scope = rememberCoroutineScope()
                             
                             if (showInviteDialog) {
                                 AlertDialog(
@@ -354,20 +356,14 @@ fun RaffleDetailScreen(
                                 )
                             }
 
-                            Box {
-                                OutlinedButton(
-                                    onClick = { showInviteDialog = true },
-                                    modifier = Modifier.fillMaxWidth(),
-                                    shape = RoundedCornerShape(12.dp)
-                                ) {
-                                    Icon(Icons.Default.PersonAdd, null)
-                                    Spacer(Modifier.width(8.dp))
-                                    Text("Invitar Colaborador")
-                                }
-                                SnackbarHost(
-                                    hostState = snackbarHostState,
-                                    modifier = Modifier.align(Alignment.BottomCenter)
-                                )
+                            OutlinedButton(
+                                onClick = { showInviteDialog = true },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Icon(Icons.Default.PersonAdd, null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Invitar Colaborador")
                             }
                         }
 
