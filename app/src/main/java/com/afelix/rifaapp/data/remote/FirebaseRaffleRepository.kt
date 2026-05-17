@@ -7,6 +7,8 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
+data class Collaborator(val uid: String, val email: String)
+
 class FirebaseRaffleRepository {
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
@@ -14,7 +16,6 @@ class FirebaseRaffleRepository {
     suspend fun syncRaffle(raffle: Raffle, tickets: List<Ticket>): String {
         val user = auth.currentUser ?: return ""
         
-        // If raffle already has a cloudId, use it. Otherwise, create a new doc.
         val docRef = if (!raffle.cloudId.isNullOrBlank()) {
             firestore.collection("raffles").document(raffle.cloudId)
         } else {
@@ -36,18 +37,14 @@ class FirebaseRaffleRepository {
         )
         
         if (raffle.cloudId.isNullOrBlank()) {
-            // New raffle: set owner info and initialize collaborators
             raffleData["ownerId"] = user.uid
             raffleData["ownerEmail"] = user.email
             raffleData["collaborators"] = listOf<String>()
             docRef.set(raffleData).await()
         } else {
-            // Existing raffle: update data but NEVER overwrite ownerId/Email via sync
-            // unless the current user is the owner (optional safety check)
             docRef.update(raffleData).await()
         }
         
-        // Sync assigned tickets in a subcollection
         val ticketsCollection = docRef.collection("tickets")
         val assignedTickets = tickets.filter { it.status != com.afelix.rifaapp.domain.model.TicketStatus.AVAILABLE }
         
@@ -57,7 +54,7 @@ class FirebaseRaffleRepository {
                 "status" to ticket.status.name,
                 "customerName" to ticket.customerName,
                 "customerPhone" to ticket.customerPhone,
-                "sellerId" to user.uid // Track who sold the ticket
+                "sellerId" to user.uid
             )
             ticketsCollection.document(ticket.number.toString()).set(ticketData).await()
         }
@@ -72,10 +69,11 @@ class FirebaseRaffleRepository {
         
         if (!snapshot.exists()) return null
         
-        // Add current user to collaborators list
+        // Add to collaborators list (using a map to store email too)
+        val collaboratorInfo = mapOf("uid" to user.uid, "email" to user.email)
+        docRef.update("collaboratorDetails", FieldValue.arrayUnion(collaboratorInfo)).await()
         docRef.update("collaborators", FieldValue.arrayUnion(user.uid)).await()
         
-        // Fetch the data
         val raffle = Raffle(
             title = snapshot.getString("title") ?: "",
             description = snapshot.getString("description") ?: "",
@@ -86,7 +84,7 @@ class FirebaseRaffleRepository {
             drawDate = snapshot.getLong("drawDate") ?: 0L,
             status = com.afelix.rifaapp.domain.model.RaffleStatus.valueOf(snapshot.getString("status") ?: "ACTIVE"),
             winningNumber = snapshot.getLong("winningNumber")?.toInt(),
-            userId = user.uid, // Marked for local session user
+            userId = user.uid,
             ownerId = snapshot.getString("ownerId"),
             cloudId = cloudId,
             ownerEmail = snapshot.getString("ownerEmail"),
@@ -96,7 +94,7 @@ class FirebaseRaffleRepository {
         val ticketsSnapshot = docRef.collection("tickets").get().await()
         val tickets = ticketsSnapshot.documents.map { tDoc ->
             Ticket(
-                raffleId = 0, // Will be set by local repo
+                raffleId = 0,
                 number = tDoc.getLong("number")?.toInt() ?: 0,
                 status = com.afelix.rifaapp.domain.model.TicketStatus.valueOf(tDoc.getString("status") ?: "AVAILABLE"),
                 customerName = tDoc.getString("customerName"),
@@ -107,19 +105,29 @@ class FirebaseRaffleRepository {
         return raffle to tickets
     }
 
+    suspend fun fetchCollaborators(cloudId: String): List<Collaborator> {
+        val docRef = firestore.collection("raffles").document(cloudId)
+        val snapshot = docRef.get().await()
+        val details = snapshot.get("collaboratorDetails") as? List<Map<String, String>> ?: emptyList()
+        return details.map { Collaborator(it["uid"] ?: "", it["email"] ?: "") }
+    }
+
+    suspend fun removeCollaborator(cloudId: String, collaboratorUid: String, collaboratorEmail: String) {
+        val docRef = firestore.collection("raffles").document(cloudId)
+        val collaboratorInfo = mapOf("uid" to collaboratorUid, "email" to collaboratorEmail)
+        docRef.update("collaboratorDetails", FieldValue.arrayRemove(collaboratorInfo)).await()
+        docRef.update("collaborators", FieldValue.arrayRemove(collaboratorUid)).await()
+    }
+
     suspend fun fetchAllUserRaffles(): List<Pair<Raffle, List<Ticket>>> {
         val user = auth.currentUser ?: return emptyList()
         
-        // 1. Fetch from NEW collaborative collection
         val ownedQuery = firestore.collection("raffles").whereEqualTo("ownerId", user.uid).get()
         val collabQuery = firestore.collection("raffles").whereArrayContains("collaborators", user.uid).get()
-        
-        // 2. Fetch from OLD user-specific collection (Migration support)
         val oldCollection = firestore.collection("users").document(user.uid).collection("raffles").get()
         
         val snapshots = listOf(ownedQuery.await(), collabQuery.await(), oldCollection.await())
         val result = mutableListOf<Pair<Raffle, List<Ticket>>>()
-        
         val processedIds = mutableSetOf<String>()
 
         for (snapshot in snapshots) {
@@ -138,18 +146,17 @@ class FirebaseRaffleRepository {
                     drawDate = doc.getLong("drawDate") ?: 0L,
                     status = com.afelix.rifaapp.domain.model.RaffleStatus.valueOf(doc.getString("status") ?: "ACTIVE"),
                     winningNumber = doc.getLong("winningNumber")?.toInt(),
-                    userId = user.uid, // Marked for local session user
+                    userId = user.uid,
                     ownerId = doc.getString("ownerId"),
                     cloudId = cloudId,
                     ownerEmail = doc.getString("ownerEmail"),
                     createdAt = doc.getLong("createdAt") ?: 0L
                 )
                 
-                // Fetch tickets (Works for both old and new structure as they use the same subcollection name)
                 val ticketsSnapshot = doc.reference.collection("tickets").get().await()
                 val tickets = ticketsSnapshot.documents.map { tDoc ->
                     Ticket(
-                        raffleId = 0, // Set locally
+                        raffleId = 0,
                         number = tDoc.getLong("number")?.toInt() ?: 0,
                         status = com.afelix.rifaapp.domain.model.TicketStatus.valueOf(tDoc.getString("status") ?: "AVAILABLE"),
                         customerName = tDoc.getString("customerName"),
@@ -158,7 +165,6 @@ class FirebaseRaffleRepository {
                 }
                 result.add(raffle to tickets)
                 
-                // If it was in the OLD collection, sync it to the NEW one and DELETE the old one
                 if (snapshot == snapshots[2]) {
                     syncRaffle(raffle, tickets)
                     doc.reference.delete().await()
@@ -170,29 +176,25 @@ class FirebaseRaffleRepository {
 
     suspend fun deleteRaffle(cloudId: String) {
         val user = auth.currentUser ?: return
-        
-        // 1. Try to delete from NEW collaborative collection
         val docRef = firestore.collection("raffles").document(cloudId)
         val snapshot = docRef.get().await()
         
         if (snapshot.exists()) {
             val ownerId = snapshot.getString("ownerId")
             if (ownerId == user.uid) {
-                // 1. Delete all tickets in the subcollection first
                 val ticketsSnapshot = docRef.collection("tickets").get().await()
                 for (ticketDoc in ticketsSnapshot.documents) {
                     ticketDoc.reference.delete().await()
                 }
-                
-                // 2. Delete the main raffle document
                 docRef.delete().await()
             } else {
-                // If collaborator, just remove self from collaborators list
+                // If collaborator, remove self from lists
+                val collaboratorInfo = mapOf("uid" to user.uid, "email" to user.email)
+                docRef.update("collaboratorDetails", FieldValue.arrayRemove(collaboratorInfo)).await()
                 docRef.update("collaborators", FieldValue.arrayRemove(user.uid)).await()
             }
         }
         
-        // 3. Try to delete from OLD user-specific collection
         val oldDocRef = firestore.collection("users").document(user.uid).collection("raffles").document(cloudId)
         val oldTicketsSnapshot = oldDocRef.collection("tickets").get().await()
         for (ticketDoc in oldTicketsSnapshot.documents) {
@@ -200,8 +202,6 @@ class FirebaseRaffleRepository {
         }
         oldDocRef.delete().await()
     }
-
-    // --- Invitations System ---
 
     suspend fun sendInvitation(raffleId: String, raffleTitle: String, targetEmail: String) {
         val user = auth.currentUser ?: return
@@ -213,7 +213,6 @@ class FirebaseRaffleRepository {
             "status" to "PENDING",
             "timestamp" to FieldValue.serverTimestamp()
         )
-        // Use a composite ID to prevent multiple invitations for the same raffle/user
         val invId = "${raffleId}_${targetEmail.replace(".", "_")}"
         firestore.collection("invitations").document(invId).set(invitation).await()
     }
@@ -237,11 +236,7 @@ class FirebaseRaffleRepository {
         if (accept) {
             val snapshot = docRef.get().await()
             val raffleId = snapshot.getString("raffleId") ?: return
-            
-            // 1. Join the raffle
             joinRaffle(raffleId)
-            
-            // 2. Mark as accepted
             docRef.update("status", "ACCEPTED").await()
         } else {
             docRef.update("status", "DECLINED").await()

@@ -32,6 +32,9 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
     private val _pendingInvitations = MutableStateFlow<List<Map<String, Any>>>(emptyList())
     val pendingInvitations = _pendingInvitations.asStateFlow()
 
+    private val _collaborators = MutableStateFlow<List<com.afelix.rifaapp.data.remote.Collaborator>>(emptyList())
+    val collaborators = _collaborators.asStateFlow()
+
     private val _userFilter = MutableStateFlow<String?>(auth.currentUser?.uid)
 
     init {
@@ -80,6 +83,14 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
 
     fun selectRaffle(raffle: Raffle) {
         _selectedRaffleId.value = raffle.id
+        // Fetch collaborators if online and cloudId exists
+        if (auth.currentUser != null && raffle.cloudId != null) {
+            viewModelScope.launch {
+                _collaborators.value = firebaseRepository.fetchCollaborators(raffle.cloudId)
+            }
+        } else {
+            _collaborators.value = emptyList()
+        }
     }
 
     fun createRaffle(raffle: Raffle) {
@@ -205,6 +216,13 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
             _isRefreshing.value = true
             firebaseRepository.respondToInvitation(invitationId, accept)
             syncAllToCloud()
+        }
+    }
+
+    fun removeCollaborator(raffleId: String, collaboratorUid: String, collaboratorEmail: String) {
+        viewModelScope.launch {
+            firebaseRepository.removeCollaborator(raffleId, collaboratorUid, collaboratorEmail)
+            _collaborators.value = firebaseRepository.fetchCollaborators(raffleId)
         }
     }
 

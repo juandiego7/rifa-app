@@ -184,6 +184,13 @@ class MainActivity : ComponentActivity() {
                                     if (raffle?.cloudId != null) {
                                         viewModel.sendInvitation(raffle.cloudId, raffle.title, email)
                                     }
+                                },
+                                collaborators = viewModel.collaborators.collectAsState().value,
+                                onRemoveCollaborator = { collab ->
+                                    val raffle = viewModel.selectedRaffle.value
+                                    if (raffle?.cloudId != null) {
+                                        viewModel.removeCollaborator(raffle.cloudId, collab.uid, collab.email)
+                                    }
                                 }
                             )
 

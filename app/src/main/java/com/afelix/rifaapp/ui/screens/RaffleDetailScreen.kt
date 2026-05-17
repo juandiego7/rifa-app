@@ -53,9 +53,14 @@ fun RaffleDetailScreen(
     onTicketsShare: (List<Ticket>) -> Unit,
     onMarketingClick: () -> Unit,
     onDrawWinner: () -> Unit,
-    onInviteCollaborator: (String) -> Unit
+    onInviteCollaborator: (String) -> Unit,
+    collaborators: List<com.afelix.rifaapp.data.remote.Collaborator>,
+    onRemoveCollaborator: (com.afelix.rifaapp.data.remote.Collaborator) -> Unit
 ) {
     if (raffle == null) return
+
+    val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
+    val isOwner = auth.currentUser != null && (raffle.ownerId == auth.currentUser?.uid || raffle.userId == auth.currentUser?.uid)
 
     val context = LocalContext.current
     var selectedIds by remember { mutableStateOf(emptySet<Long>()) }
@@ -291,52 +296,81 @@ fun RaffleDetailScreen(
 
                     Text("Equipo y Sorteo", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
 
-                    var showInviteDialog by remember { mutableStateOf(false) }
-                    var inviteEmail by remember { mutableStateOf("") }
-                    
-                    if (showInviteDialog) {
-                        AlertDialog(
-                            onDismissRequest = { showInviteDialog = false },
-                            title = { Text("Invitar Colaborador") },
-                            text = {
-                                Column {
-                                    Text("Ingresa el correo de la persona que te ayudará a vender:")
-                                    Spacer(Modifier.height(8.dp))
-                                    OutlinedTextField(
-                                        value = inviteEmail,
-                                        onValueChange = { inviteEmail = it },
-                                        label = { Text("Correo Electrónico") },
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
-                                }
-                            },
-                            confirmButton = {
-                                TextButton(
-                                    enabled = inviteEmail.isNotBlank(),
-                                    onClick = {
-                                        onInviteCollaborator(inviteEmail)
-                                        showInviteDialog = false
-                                        inviteEmail = ""
+                    if (isOwner) {
+                        var showInviteDialog by remember { mutableStateOf(false) }
+                        var inviteEmail by remember { mutableStateOf("") }
+                        
+                        if (showInviteDialog) {
+                            AlertDialog(
+                                onDismissRequest = { showInviteDialog = false },
+                                title = { Text("Invitar Colaborador") },
+                                text = {
+                                    Column {
+                                        Text("Ingresa el correo de la persona que te ayudará a vender:")
+                                        Spacer(Modifier.height(8.dp))
+                                        OutlinedTextField(
+                                            value = inviteEmail,
+                                            onValueChange = { inviteEmail = it },
+                                            label = { Text("Correo Electrónico") },
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
                                     }
-                                ) { Text("Enviar Invitación") }
-                            },
-                            dismissButton = {
-                                TextButton(onClick = { showInviteDialog = false }) { Text("Cancelar") }
+                                },
+                                confirmButton = {
+                                    TextButton(
+                                        enabled = inviteEmail.isNotBlank(),
+                                        onClick = {
+                                            onInviteCollaborator(inviteEmail)
+                                            showInviteDialog = false
+                                            inviteEmail = ""
+                                        }
+                                    ) { Text("Enviar Invitación") }
+                                },
+                                dismissButton = {
+                                    TextButton(onClick = { showInviteDialog = false }) { Text("Cancelar") }
+                                }
+                            )
+                        }
+
+                        OutlinedButton(
+                            onClick = { showInviteDialog = true },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(Icons.Default.PersonAdd, null)
+                            Spacer(Modifier.width(8.dp))
+                            Text("Invitar a Vendedor")
+                        }
+                    }
+
+                    // Collaborators List
+                    if (collaborators.isNotEmpty()) {
+                        Text("Vendedores Colaboradores", style = MaterialTheme.typography.labelLarge, color = Color.Gray)
+                        collaborators.forEach { collaborator ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(text = collaborator.email, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                                        Text(text = "Colaborador", style = MaterialTheme.typography.labelSmall)
+                                    }
+                                    if (isOwner) {
+                                        IconButton(onClick = { onRemoveCollaborator(collaborator) }) {
+                                            Icon(Icons.Default.PersonRemove, null, tint = MaterialTheme.colorScheme.error)
+                                        }
+                                    }
+                                }
                             }
-                        )
+                        }
                     }
 
-                    OutlinedButton(
-                        onClick = { showInviteDialog = true },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        Icon(Icons.Default.PersonAdd, null)
-                        Spacer(Modifier.width(8.dp))
-                        Text("Invitar a Vendedor")
-                    }
-
-                    if (raffle.status == RaffleStatus.ACTIVE) {
+                    if (isOwner && raffle.status == RaffleStatus.ACTIVE) {
                         Button(
                             onClick = onDrawWinner,
                             modifier = Modifier.fillMaxWidth(),
