@@ -178,8 +178,6 @@ fun RaffleDetailScreen(
             if (selectedTabIndex == 0) {
                 // TAB 1: TICKETS
                 Column(modifier = Modifier.fillMaxSize()) {
-                    com.afelix.rifaapp.ui.components.AdBanner()
-
                     // Search Bar (Toggleable)
                     if (isSearchExpanded) {
                         OutlinedTextField(
@@ -269,8 +267,6 @@ fun RaffleDetailScreen(
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    com.afelix.rifaapp.ui.components.AdBanner()
-
                     DashboardSection(
                         raffle = raffle, 
                         stats = stats, 

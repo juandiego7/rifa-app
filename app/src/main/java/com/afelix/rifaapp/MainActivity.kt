@@ -77,8 +77,8 @@ class MainActivity : ComponentActivity() {
                 // Determine if we should show the ad banner
                 val currentBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = currentBackStackEntry?.destination?.route
-                // Hide banner only on "detail" route (where numbers are listed)
-                val showAdBanner = currentRoute != "detail"
+                // Show banner on all main routes except Auth
+                val showAdBanner = currentRoute != "auth"
 
                 Scaffold(
                     modifier = Modifier.navigationBarsPadding(),
