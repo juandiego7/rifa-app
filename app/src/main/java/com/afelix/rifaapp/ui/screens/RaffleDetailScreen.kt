@@ -343,7 +343,7 @@ fun RaffleDetailScreen(
                                             showInviteDialog = false
                                             inviteEmail = ""
                                             // Show a snackbar message
-                                            scope.launch {
+                                            kotlinx.coroutines.MainScope().launch {
                                                 snackbarHostState.showSnackbar(
                                                     message = "Invitación enviada con éxito",
                                                     duration = SnackbarDuration.Short
