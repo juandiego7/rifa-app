@@ -239,6 +239,7 @@ fun RaffleListScreen(
                 items(raffles) { raffle ->
                     RaffleItem(
                         raffle = raffle,
+                        authViewModel = authViewModel,
                         onClick = { onRaffleClick(raffle) },
                         onDelete = { raffleToAction = raffle },
                         onPdf = { onQuickPdf(raffle) },
@@ -253,14 +254,17 @@ fun RaffleListScreen(
 @Composable
 fun RaffleItem(
     raffle: Raffle, 
+    authViewModel: AuthViewModel, // Pasamos el ViewModel para detectar el usuario actual
     onClick: () -> Unit, 
     onDelete: () -> Unit,
     onPdf: () -> Unit,
     onMarketing: () -> Unit
 ) {
-    val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
-    val currentUser = auth.currentUser
-    val isOwner = currentUser != null && raffle.ownerId == currentUser.uid
+    val authState by authViewModel.authState.collectAsState()
+    val currentUser = if (authState is AuthState.Authenticated) {
+        com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+    } else null
+    val isOwner = currentUser == null || raffle.ownerId == currentUser.uid || raffle.userId == currentUser.uid
 
     Card(
         modifier = Modifier
