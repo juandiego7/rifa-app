@@ -60,7 +60,9 @@ fun RaffleDetailScreen(
     if (raffle == null) return
 
     val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
-    val isOwner = auth.currentUser != null && (raffle.ownerId == auth.currentUser?.uid || raffle.userId == auth.currentUser?.uid)
+    // A collaborator also has raffle.userId == currentUid locally, 
+    // so we MUST check against raffle.ownerId (the cloud owner)
+    val isOwner = auth.currentUser != null && raffle.ownerId == auth.currentUser?.uid
 
     val context = LocalContext.current
     var selectedIds by remember { mutableStateOf(emptySet<Long>()) }

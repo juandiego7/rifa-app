@@ -1,11 +1,9 @@
 package com.afelix.rifaapp.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
@@ -16,7 +14,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
@@ -47,7 +44,43 @@ fun RaffleListScreen(
     onQuickPdf: (Raffle) -> Unit,
     onQuickMarketing: (Raffle) -> Unit
 ) {
-    var raffleToDelete by remember { mutableStateOf<Raffle?>(null) }
+    var raffleToAction by remember { mutableStateOf<Raffle?>(null) }
+    val authState by authViewModel.authState.collectAsState()
+    val currentUser = if (authState is AuthState.Authenticated) {
+        com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+    } else null
+
+    if ( raffleToAction != null ) {
+        val isOwner = currentUser != null && raffleToAction?.ownerId == currentUser.uid
+        
+        AlertDialog(
+            onDismissRequest = { raffleToAction = null },
+            title = { Text(if (isOwner) "Eliminar Rifa" else "Salir de Rifa") },
+            text = { 
+                Text(
+                    if (isOwner) "¿Estás seguro de que deseas eliminar esta rifa? Esta acción borrará permanentemente todos los datos de la nube."
+                    else "¿Deseas dejar de colaborar en esta rifa? Ya no podrás ver sus boletas ni vender más números."
+                ) 
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        raffleToAction?.let { onDeleteRaffle(it) }
+                        raffleToAction = null
+                    },
+                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text(if (isOwner) "Eliminar" else "Salir")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { raffleToAction = null }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
     var showJoinDialog by remember { mutableStateOf(false) }
     var joinCode by remember { mutableStateOf("") }
     var showInvitationsDialog by remember { mutableStateOf(false) }
@@ -64,7 +97,7 @@ fun RaffleListScreen(
                         pendingInvitations.forEach { invite ->
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
                             ) {
                                 Column(modifier = Modifier.padding(12.dp)) {
                                     Text(
@@ -140,35 +173,6 @@ fun RaffleListScreen(
         )
     }
 
-    if ( raffleToDelete != null ) {
-        AlertDialog(
-            onDismissRequest = { raffleToDelete = null },
-            title = { Text("Eliminar Rifa") },
-            text = { Text("¿Estás seguro de que deseas eliminar esta rifa? Esta acción no se puede deshacer.") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        raffleToDelete?.let { onDeleteRaffle(it) }
-                        raffleToDelete = null
-                    },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Eliminar")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { raffleToDelete = null }) {
-                    Text("Cancelar")
-                }
-            }
-        )
-    }
-
-    val authState by authViewModel.authState.collectAsState()
-    val currentUser = if (authState is AuthState.Authenticated) {
-        com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
-    } else null
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -236,7 +240,7 @@ fun RaffleListScreen(
                     RaffleItem(
                         raffle = raffle,
                         onClick = { onRaffleClick(raffle) },
-                        onDelete = { raffleToDelete = raffle },
+                        onDelete = { raffleToAction = raffle },
                         onPdf = { onQuickPdf(raffle) },
                         onMarketing = { onQuickMarketing(raffle) }
                     )
@@ -256,6 +260,7 @@ fun RaffleItem(
 ) {
     val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
     val currentUser = auth.currentUser
+    val isOwner = currentUser != null && raffle.ownerId == currentUser.uid
 
     Card(
         modifier = Modifier
@@ -266,7 +271,7 @@ fun RaffleItem(
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            // Header: Titulo + Eliminar
+            // Header: Titulo + Eliminar/Salir
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -285,8 +290,8 @@ fun RaffleItem(
                     modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
-                        Icons.Default.Delete, 
-                        contentDescription = "Eliminar", 
+                        imageVector = if (isOwner) Icons.Default.Delete else Icons.AutoMirrored.Filled.Logout, 
+                        contentDescription = if (isOwner) "Eliminar" else "Salir", 
                         tint = MaterialTheme.colorScheme.error,
                         modifier = Modifier.size(24.dp)
                     )
@@ -322,7 +327,7 @@ fun RaffleItem(
             }
 
             // Show owner email if not current user
-            if (currentUser != null && raffle.ownerEmail != null && raffle.ownerEmail != currentUser.email) {
+            if (currentUser != null && raffle.ownerId != null && raffle.ownerId != currentUser.uid) {
                 Text(
                     text = "Dueño: ${raffle.ownerEmail}",
                     style = MaterialTheme.typography.labelSmall,
