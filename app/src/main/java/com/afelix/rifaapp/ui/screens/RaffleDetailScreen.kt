@@ -163,13 +163,8 @@ fun RaffleDetailScreen(
             }
         }
     ) { padding ->
-        PullToRefreshBox(
-            isRefreshing = isRefreshing,
-            onRefresh = onRefresh,
-            modifier = Modifier.fillMaxSize().padding(padding)
-        ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                PrimaryTabRow(selectedTabIndex = selectedTabIndex) {
+        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+            PrimaryTabRow(selectedTabIndex = selectedTabIndex) {
                 Tab(
                     selected = selectedTabIndex == 0,
                     onClick = { selectedTabIndex = 0 },
@@ -184,244 +179,250 @@ fun RaffleDetailScreen(
                 )
             }
 
-            if (selectedTabIndex == 0) {
-                // TAB 1: TICKETS
-                Column(modifier = Modifier.fillMaxSize()) {
-                    // Search Bar (Toggleable)
-                    if (isSearchExpanded) {
-                        OutlinedTextField(
-                            value = searchQuery,
-                            onValueChange = { searchQuery = it },
-                            placeholder = { Text("Buscar por número o nombre...", fontSize = 14.sp) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 8.dp, vertical = 4.dp),
-                            leadingIcon = { Icon(Icons.Default.Search, null, modifier = Modifier.size(20.dp)) },
-                            trailingIcon = {
-                                IconButton(onClick = { 
-                                    searchQuery = ""
-                                    isSearchExpanded = false
-                                }) {
-                                    Icon(Icons.Default.Close, null, modifier = Modifier.size(20.dp))
-                                }
-                            },
-                            singleLine = true,
-                            shape = RoundedCornerShape(12.dp),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                                unfocusedContainerColor = MaterialTheme.colorScheme.surface
-                            ),
-                            textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp)
-                        )
-                    }
-                    
-                    LazyVerticalGrid(
-                        columns = if (isGridView) GridCells.Adaptive(minSize = 44.dp) else GridCells.Fixed(2),
-                        contentPadding = PaddingValues(if (isGridView) 4.dp else 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(if (isGridView) 2.dp else 4.dp),
-                        verticalArrangement = Arrangement.spacedBy(if (isGridView) 2.dp else 4.dp),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        items(filteredTickets) { ticket ->
-                            val isSelected = ticket.id in selectedIds
-                            if (isGridView) {
-                                TicketCircle(
-                                    ticket = ticket,
-                                    digits = raffle.digits,
-                                    isSelected = isSelected,
-                                    showBadge = true,
-                                    showName = true,
-                                    onClick = {
-                                        if (isSelectionMode) {
-                                            selectedIds = if (isSelected) selectedIds - ticket.id else selectedIds + ticket.id
-                                        } else {
-                                            onTicketsAssign(listOf(ticket))
-                                        }
-                                    },
-                                    onLongClick = {
-                                        if (!isSelectionMode) {
-                                            selectedIds = setOf(ticket.id)
-                                        }
-                                    },
-                                    modifier = Modifier.fillMaxWidth().aspectRatio(1f)
-                                )
-                            } else {
-                                TicketListItem(
-                                    ticket = ticket,
-                                    digits = raffle.digits,
-                                    isSelected = isSelected,
-                                    onClick = {
-                                        if (isSelectionMode) {
-                                            selectedIds = if (isSelected) selectedIds - ticket.id else selectedIds + ticket.id
-                                        } else {
-                                            onTicketsAssign(listOf(ticket))
-                                        }
-                                    },
-                                    onLongClick = {
-                                        if (!isSelectionMode) {
-                                            selectedIds = setOf(ticket.id)
-                                        }
+            PullToRefreshBox(
+                isRefreshing = isRefreshing,
+                onRefresh = onRefresh,
+                modifier = Modifier.weight(1f)
+            ) {
+                if (selectedTabIndex == 0) {
+                    // TAB 1: TICKETS
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        // Search Bar (Toggleable)
+                        if (isSearchExpanded) {
+                            OutlinedTextField(
+                                value = searchQuery,
+                                onValueChange = { searchQuery = it },
+                                placeholder = { Text("Buscar por número o nombre...", fontSize = 14.sp) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                                leadingIcon = { Icon(Icons.Default.Search, null, modifier = Modifier.size(20.dp)) },
+                                trailingIcon = {
+                                    IconButton(onClick = { 
+                                        searchQuery = ""
+                                        isSearchExpanded = false
+                                    }) {
+                                        Icon(Icons.Default.Close, null, modifier = Modifier.size(20.dp))
                                     }
-                                )
-                            }
-                        }
-                    }
-                }
-            } else {
-                // TAB 2: MANAGEMENT
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    DashboardSection(
-                        raffle = raffle, 
-                        stats = stats, 
-                        onShareWinner = { shareWinnerImage() }
-                    )
-
-                    Text("Herramientas de Venta", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Button(
-                            onClick = onMarketingClick,
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Icon(Icons.Default.Image, null)
-                            Spacer(Modifier.width(8.dp))
-                            Text("Publicidad", fontSize = 11.sp)
-                        }
-                        Button(
-                            onClick = { PdfExporter.exportRaffleToPdf(context, raffle, tickets) },
-                            modifier = Modifier.weight(1f),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Icon(Icons.Default.PictureAsPdf, null)
-                            Spacer(Modifier.width(8.dp))
-                            Text("Reporte PDF", fontSize = 11.sp)
-                        }
-                    }
-
-                    if (isOwner) {
-                        Surface(
-                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
-                            shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = "Eres el administrador de esta rifa",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(8.dp),
-                                textAlign = TextAlign.Center
+                                },
+                                singleLine = true,
+                                shape = RoundedCornerShape(12.dp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                                ),
+                                textStyle = MaterialTheme.typography.bodyMedium.copy(fontSize = 14.sp)
                             )
                         }
                         
-                        Text("Equipo y Sorteo", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-
-                        var showInviteDialog by remember { mutableStateOf(false) }
-                        var inviteEmail by remember { mutableStateOf("") }
-                        val scope = rememberCoroutineScope()
-                        val snackbarHostState = remember { SnackbarHostState() }
-                        
-                        if (showInviteDialog) {
-                            AlertDialog(
-                                onDismissRequest = { showInviteDialog = false },
-                                title = { Text("Invitar Colaborador") },
-                                text = {
-                                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                        Text("Ingresa el correo de la persona que te ayudará a vender:")
-                                        OutlinedTextField(
-                                            value = inviteEmail,
-                                            onValueChange = { inviteEmail = it },
-                                            label = { Text("Correo Electrónico") },
-                                            modifier = Modifier.fillMaxWidth()
-                                        )
-                                        // AdBanner inside Dialog
-                                        com.afelix.rifaapp.ui.components.AdBanner()
-                                    }
-                                },
-                                confirmButton = {
-                                    TextButton(
-                                        enabled = inviteEmail.isNotBlank(),
+                        LazyVerticalGrid(
+                            columns = if (isGridView) GridCells.Adaptive(minSize = 44.dp) else GridCells.Fixed(2),
+                            contentPadding = PaddingValues(if (isGridView) 4.dp else 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(if (isGridView) 2.dp else 4.dp),
+                            verticalArrangement = Arrangement.spacedBy(if (isGridView) 2.dp else 4.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            items(filteredTickets) { ticket ->
+                                val isSelected = ticket.id in selectedIds
+                                if (isGridView) {
+                                    TicketCircle(
+                                        ticket = ticket,
+                                        digits = raffle.digits,
+                                        isSelected = isSelected,
+                                        showBadge = true,
+                                        showName = true,
                                         onClick = {
-                                            onInviteCollaborator(inviteEmail)
-                                            showInviteDialog = false
-                                            inviteEmail = ""
-                                            // Show a snackbar message
-                                            scope.launch {
-                                                snackbarHostState.showSnackbar(
-                                                    message = "Invitación enviada con éxito",
-                                                    duration = SnackbarDuration.Short
-                                                )
+                                            if (isSelectionMode) {
+                                                selectedIds = if (isSelected) selectedIds - ticket.id else selectedIds + ticket.id
+                                            } else {
+                                                onTicketsAssign(listOf(ticket))
+                                            }
+                                        },
+                                        onLongClick = {
+                                            if (!isSelectionMode) {
+                                                selectedIds = setOf(ticket.id)
+                                            }
+                                        },
+                                        modifier = Modifier.fillMaxWidth().aspectRatio(1f)
+                                    )
+                                } else {
+                                    TicketListItem(
+                                        ticket = ticket,
+                                        digits = raffle.digits,
+                                        isSelected = isSelected,
+                                        onClick = {
+                                            if (isSelectionMode) {
+                                                selectedIds = if (isSelected) selectedIds - ticket.id else selectedIds + ticket.id
+                                            } else {
+                                                onTicketsAssign(listOf(ticket))
+                                            }
+                                        },
+                                        onLongClick = {
+                                            if (!isSelectionMode) {
+                                                selectedIds = setOf(ticket.id)
                                             }
                                         }
-                                    ) { Text("Enviar Invitación") }
-                                },
-                                dismissButton = {
-                                    TextButton(onClick = { showInviteDialog = false }) { Text("Cancelar") }
+                                    )
                                 }
-                            )
-                        }
-
-                        Box {
-                            OutlinedButton(
-                                onClick = { showInviteDialog = true },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(12.dp)
-                            ) {
-                                Icon(Icons.Default.PersonAdd, null)
-                                Spacer(Modifier.width(8.dp))
-                                Text("Invitar Colaborador")
                             }
-                            SnackbarHost(
-                                hostState = snackbarHostState,
-                                modifier = Modifier.align(Alignment.BottomCenter)
-                            )
                         }
                     }
+                } else {
+                    // TAB 2: MANAGEMENT
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        DashboardSection(
+                            raffle = raffle, 
+                            stats = stats, 
+                            onShareWinner = { shareWinnerImage() }
+                        )
 
-                    // Collaborators List (Only visible to owner)
-                    if (isOwner && collaborators.isNotEmpty()) {
-                        Text("Colaboradores", style = MaterialTheme.typography.labelLarge, color = Color.Gray)
-                        collaborators.forEach { collaborator ->
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        Text("Herramientas de Venta", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(
+                                onClick = onMarketingClick,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(12.dp)
                             ) {
-                                Row(
-                                    modifier = Modifier.padding(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(text = collaborator.email, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
-                                        Text(text = "Colaborador", style = MaterialTheme.typography.labelSmall)
+                                Icon(Icons.Default.Image, null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Publicidad", fontSize = 11.sp)
+                            }
+                            Button(
+                                onClick = { PdfExporter.exportRaffleToPdf(context, raffle, tickets) },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Icon(Icons.Default.PictureAsPdf, null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Reporte PDF", fontSize = 11.sp)
+                            }
+                        }
+
+                        if (isOwner) {
+                            Surface(
+                                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = "Eres el administrador de esta rifa",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(8.dp),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                            
+                            Text("Equipo y Sorteo", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+
+                            var showInviteDialog by remember { mutableStateOf(false) }
+                            var inviteEmail by remember { mutableStateOf("") }
+                            val scope = rememberCoroutineScope()
+                            val snackbarHostState = remember { SnackbarHostState() }
+                            
+                            if (showInviteDialog) {
+                                AlertDialog(
+                                    onDismissRequest = { showInviteDialog = false },
+                                    title = { Text("Invitar Colaborador") },
+                                    text = {
+                                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                            Text("Ingresa el correo de la persona que te ayudará a vender:")
+                                            OutlinedTextField(
+                                                value = inviteEmail,
+                                                onValueChange = { inviteEmail = it },
+                                                label = { Text("Correo Electrónico") },
+                                                modifier = Modifier.fillMaxWidth()
+                                            )
+                                            // AdBanner inside Dialog
+                                            com.afelix.rifaapp.ui.components.AdBanner()
+                                        }
+                                    },
+                                    confirmButton = {
+                                        TextButton(
+                                            enabled = inviteEmail.isNotBlank(),
+                                            onClick = {
+                                                onInviteCollaborator(inviteEmail)
+                                                showInviteDialog = false
+                                                inviteEmail = ""
+                                                // Show a snackbar message
+                                                scope.launch {
+                                                    snackbarHostState.showSnackbar(
+                                                        message = "Invitación enviada con éxito",
+                                                        duration = SnackbarDuration.Short
+                                                    )
+                                                }
+                                            }
+                                        ) { Text("Enviar Invitación") }
+                                    },
+                                    dismissButton = {
+                                        TextButton(onClick = { showInviteDialog = false }) { Text("Cancelar") }
                                     }
-                                    if (isOwner) {
-                                        IconButton(onClick = { onRemoveCollaborator(collaborator) }) {
-                                            Icon(Icons.Default.PersonRemove, null, tint = MaterialTheme.colorScheme.error)
+                                )
+                            }
+
+                            Box {
+                                OutlinedButton(
+                                    onClick = { showInviteDialog = true },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Icon(Icons.Default.PersonAdd, null)
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Invitar Colaborador")
+                                }
+                                SnackbarHost(
+                                    hostState = snackbarHostState,
+                                    modifier = Modifier.align(Alignment.BottomCenter)
+                                )
+                            }
+                        }
+
+                        // Collaborators List (Only visible to owner)
+                        if (isOwner && collaborators.isNotEmpty()) {
+                            Text("Colaboradores", style = MaterialTheme.typography.labelLarge, color = Color.Gray)
+                            collaborators.forEach { collaborator ->
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(text = collaborator.email, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold)
+                                            Text(text = "Colaborador", style = MaterialTheme.typography.labelSmall)
+                                        }
+                                        if (isOwner) {
+                                            IconButton(onClick = { onRemoveCollaborator(collaborator) }) {
+                                                Icon(Icons.Default.PersonRemove, null, tint = MaterialTheme.colorScheme.error)
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
-                    }
 
 
-                    if (isOwner && raffle.status == RaffleStatus.ACTIVE) {
-                        Button(
-                            onClick = onDrawWinner,
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
-                        ) {
-                            Icon(Icons.Default.Casino, null)
-                            Spacer(Modifier.width(8.dp))
-                            Text("Realizar Sorteo Final")
+                        if (isOwner && raffle.status == RaffleStatus.ACTIVE) {
+                            Button(
+                                onClick = onDrawWinner,
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                            ) {
+                                Icon(Icons.Default.Casino, null)
+                                Spacer(Modifier.width(8.dp))
+                                Text("Realizar Sorteo Final")
+                            }
                         }
                     }
                 }
@@ -429,16 +430,6 @@ fun RaffleDetailScreen(
         }
 
         // Hidden capture box for winner card
-        Box(modifier = Modifier.width(360.dp).wrapContentHeight().offset(x = 2000.dp)) {
-            if (raffle.status == RaffleStatus.FINISHED) {
-                ViewCaptureWrapper<View>(onViewReady = { winnerCaptureView = it }) {
-                    val winnerTicket = tickets.find { it.number == raffle.winningNumber }
-                    WinnerCard(raffle = raffle, winnerTicket = winnerTicket)
-                }
-            }
-        }
-    }
-}
 
 @Composable
 fun DashboardSection(
