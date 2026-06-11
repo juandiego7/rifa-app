@@ -24,7 +24,8 @@ import com.afelix.rifaapp.ui.viewmodel.AuthViewModel
 @Composable
 fun AuthScreen(
     viewModel: AuthViewModel,
-    onAuthSuccess: () -> Unit
+    onAuthSuccess: () -> Unit,
+    onLegalClick: () -> Unit
 ) {
     val context = LocalContext.current
     val authState by viewModel.authState.collectAsState()
@@ -139,6 +140,19 @@ fun AuthScreen(
                         modifier = Modifier.padding(top = 16.dp)
                     )
                 }
+
+                Spacer(Modifier.height(24.dp))
+
+                TextButton(onClick = onLegalClick) {
+                    Text(
+                        "Términos y Política de Privacidad",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White.copy(alpha = 0.7f)
+                    )
+                }
+
+                Spacer(Modifier.height(16.dp))
+                Text(text = "AFELIX - 2026", color = Color.White.copy(alpha = 0.5f), fontSize = 10.sp)
             }
         }
     }

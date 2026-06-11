@@ -42,7 +42,8 @@ fun RaffleListScreen(
     pendingInvitations: List<Map<String, Any>>,
     onInvitationResponse: (String, Boolean) -> Unit,
     onQuickPdf: (Raffle) -> Unit,
-    onQuickMarketing: (Raffle) -> Unit
+    onQuickMarketing: (Raffle) -> Unit,
+    onLegalClick: () -> Unit = {}
 ) {
     var raffleToAction by remember { mutableStateOf<Raffle?>(null) }
     val authState by authViewModel.authState.collectAsState()
@@ -248,6 +249,11 @@ fun RaffleListScreen(
                             contentDescription = if (currentUser != null) "Cerrar Sesión" else "Iniciar Sesión"
                         )
                     }
+
+                    IconButton(onClick = onLegalClick) {
+                        Icon(Icons.Default.Info, contentDescription = "Legal")
+                    }
+
                     IconButton(
                         onClick = onCreateRaffleClick,
                         modifier = Modifier.padding(end = 12.dp)

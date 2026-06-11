@@ -97,12 +97,18 @@ class MainActivity : ComponentActivity() {
                             AuthScreen(
                                 viewModel = authViewModel,
                                 onAuthSuccess = {
-                                    viewModel.onUserLogin() // Actualiza filtro y sincroniza
+                                    viewModel.onUserLogin()
                                     navController.navigate("list") {
                                         popUpTo("auth") { inclusive = true }
                                     }
+                                },
+                                onLegalClick = {
+                                    navController.navigate("legal")
                                 }
                             )
+                        }
+                        composable("legal") {
+                            LegalScreen(onBack = { navController.popBackStack() })
                         }
                         composable("list") {
                             val raffles by viewModel.raffles.collectAsState()
@@ -144,6 +150,9 @@ class MainActivity : ComponentActivity() {
                                 onQuickMarketing = { raffle ->
                                     viewModel.selectRaffle(raffle)
                                     navController.navigate("marketing")
+                                },
+                                onLegalClick = {
+                                    navController.navigate("legal")
                                 }
                             )
                         }
