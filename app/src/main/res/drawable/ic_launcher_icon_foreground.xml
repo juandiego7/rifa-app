@@ -1,0 +1,74 @@
+<!--
+  ~ Copyright (C) 2026 The Android Open Source Project
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Patas de la tómbola -->
+    <path
+        android:fillColor="#0277BD"
+        android:pathData="M42,82 L48,72 L52,72 L48,82 Z" />
+    <path
+        android:fillColor="#0277BD"
+        android:pathData="M66,82 L60,72 L56,72 L60,82 Z" />
+    <path
+        android:fillColor="#64B5F6"
+        android:pathData="M38,82 L46,82 L46,86 L38,86 Z" />
+    <path
+        android:fillColor="#64B5F6"
+        android:pathData="M62,82 L70,82 L70,86 L62,86 Z" />
+
+    <!-- Borde Octagonal Amarillo -->
+    <path
+        android:fillColor="#FFD54F"
+        android:pathData="M40,25 L68,25 L83,40 L83,68 L68,83 L40,83 L25,68 L25,40 Z" />
+
+    <!-- Interior de la tómbola (Cristal Azul Claro) -->
+    <path
+        android:fillColor="#BBDEFB"
+        android:pathData="M42,30 L66,30 L78,42 L78,66 L66,78 L42,78 L30,66 L30,42 Z" />
+
+    <!-- Líneas radiales blancas -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1"
+        android:pathData="M54,54 L54,30 M54,54 L78,42 M54,54 L78,66 M54,54 L54,78 M54,54 L30,66 M54,54 L30,42" />
+
+    <!-- Eje Central Azul Oscuro -->
+    <path
+        android:fillColor="#1565C0"
+        android:pathData="M54,54 m-10,0 a10,10 0 1,1 20,0 a10,10 0 1,1 -20,0" />
+    <path
+        android:fillColor="#64B5F6"
+        android:pathData="M54,54 m-4,0 a4,4 0 1,1 8,0 a4,4 0 1,1 -8,0" />
+
+    <!-- Bolitas Rojas -->
+    <path
+        android:fillColor="#EF5350"
+        android:pathData="M38,48 m-5,0 a5,5 0 1,1 10,0 a5,5 0 1,1 -10,0" />
+    <path
+        android:fillColor="#EF5350"
+        android:pathData="M45,62 m-5,0 a5,5 0 1,1 10,0 a5,5 0 1,1 -10,0" />
+    <path
+        android:fillColor="#EF5350"
+        android:pathData="M63,60 m-5,0 a5,5 0 1,1 10,0 a5,5 0 1,1 -10,0" />
+    <path
+        android:fillColor="#EF5350"
+        android:pathData="M75,52 m-5,0 a5,5 0 1,1 10,0 a5,5 0 1,1 -10,0" />
+
+</vector>
