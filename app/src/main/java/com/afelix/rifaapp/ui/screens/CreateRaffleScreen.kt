@@ -33,8 +33,6 @@ fun CreateRaffleScreen(
     var maxNumberTouched by remember { mutableStateOf(false) }
     var ticketValueTouched by remember { mutableStateOf(false) }
     
-    val lettersOnly = remember { Regex("^[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]*$") }
-    val alphanumeric = remember { Regex("^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\\s]*$") }
     val numbersOnly = remember { Regex("^[0-9]*$") }
     val decimalOnly = remember { Regex("^[0-9]*\\.?[0-9]*$") }
 
@@ -87,10 +85,9 @@ fun CreateRaffleScreen(
                 value = description,
                 onValueChange = { 
                     descriptionTouched = true
-                    if (it.matches(lettersOnly)) description = it 
+                    description = it 
                 },
                 label = { Text("Descripción de la Rifa") },
-                placeholder = { Text("Solo letras") },
                 modifier = Modifier.fillMaxWidth(),
                 isError = descriptionTouched && description.isBlank()
             )
@@ -98,10 +95,9 @@ fun CreateRaffleScreen(
                 value = prize,
                 onValueChange = { 
                     prizeTouched = true
-                    if (it.matches(alphanumeric)) prize = it 
+                    prize = it 
                 },
                 label = { Text("Premio") },
-                placeholder = { Text("Letras o monto de dinero") },
                 modifier = Modifier.fillMaxWidth(),
                 isError = prizeTouched && prize.isBlank()
             )
