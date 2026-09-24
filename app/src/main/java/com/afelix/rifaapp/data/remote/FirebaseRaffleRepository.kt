@@ -13,7 +13,7 @@ class FirebaseRaffleRepository {
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
 
-    suspend fun syncRaffle(raffle: Raffle, tickets: List<Ticket>): String {
+    suspend fun syncRaffle(raffle: Raffle, tickets: List<Ticket>, releasedNumbers: Collection<Int> = emptyList()): String {
         val user = auth.currentUser ?: return ""
         
         val docRef = if (!raffle.cloudId.isNullOrBlank()) {
@@ -57,6 +57,11 @@ class FirebaseRaffleRepository {
                 "sellerId" to user.uid
             )
             ticketsCollection.document(ticket.number.toString()).set(ticketData).await()
+        }
+
+        // Tickets freed locally must be removed from the cloud, otherwise the next pull restores them
+        for (number in releasedNumbers) {
+            ticketsCollection.document(number.toString()).delete().await()
         }
         
         return docRef.id

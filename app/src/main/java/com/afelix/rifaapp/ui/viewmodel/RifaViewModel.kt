@@ -1,6 +1,8 @@
 package com.afelix.rifaapp.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
+import com.afelix.rifaapp.core.util.PdfExporter
 import androidx.lifecycle.viewModelScope
 import com.afelix.rifaapp.domain.model.Raffle
 import com.afelix.rifaapp.domain.model.RaffleDashboardStats
@@ -104,7 +106,7 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
     fun updateTicket(ticket: Ticket) {
         viewModelScope.launch {
             repository.updateTicket(ticket)
-            syncToCloud(ticket.raffleId)
+            syncToCloud(ticket.raffleId, releasedNumbersOf(listOf(ticket)))
         }
     }
 
@@ -112,7 +114,7 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
         viewModelScope.launch {
             repository.updateTickets(tickets)
             if (tickets.isNotEmpty()) {
-                syncToCloud(tickets.first().raffleId)
+                syncToCloud(tickets.first().raffleId, releasedNumbersOf(tickets))
             }
         }
     }
@@ -235,14 +237,25 @@ class RifaViewModel(private val repository: RaffleRepository) : ViewModel() {
         _userFilter.value = null
     }
 
-    private fun syncToCloud(raffleId: Long) {
+    fun exportRaffleToPdf(context: Context, raffle: Raffle) {
+        viewModelScope.launch {
+            // Read the tickets directly: the `tickets` flow may still hold the previously selected raffle
+            val raffleTickets = repository.getTicketsByRaffleId(raffle.id).first()
+            PdfExporter.exportRaffleToPdf(context, raffle, raffleTickets)
+        }
+    }
+
+    private fun releasedNumbersOf(tickets: List<Ticket>) =
+        tickets.filter { it.status == TicketStatus.AVAILABLE }.map { it.number }
+
+    private fun syncToCloud(raffleId: Long, releasedNumbers: List<Int> = emptyList()) {
         if (auth.currentUser == null) return
         
         viewModelScope.launch {
             val raffle = repository.getRaffleById(raffleId)
             val tickets = repository.getTicketsByRaffleId(raffleId).first()
             if (raffle != null) {
-                val cloudId = firebaseRepository.syncRaffle(raffle, tickets)
+                val cloudId = firebaseRepository.syncRaffle(raffle, tickets, releasedNumbers)
                 if (raffle.cloudId == null) {
                     repository.updateRaffle(raffle.copy(cloudId = cloudId))
                 }
