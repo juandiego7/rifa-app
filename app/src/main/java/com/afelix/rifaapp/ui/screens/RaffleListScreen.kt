@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Login
@@ -276,6 +277,17 @@ fun RaffleListScreen(
                 contentPadding = PaddingValues(12.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                // While syncing, the list may still be filling from the cloud
+                if (raffles.isEmpty() && !isRefreshing) {
+                    item {
+                        EmptyRafflesState(
+                            pendingInvitationsCount = if (currentUser != null) pendingInvitations.size else 0,
+                            onCreateRaffleClick = onCreateRaffleClick,
+                            onShowInvitations = { showInvitationsDialog = true },
+                            modifier = Modifier.fillParentMaxSize()
+                        )
+                    }
+                }
                 items(raffles) { raffle ->
                     RaffleItem(
                         raffle = raffle,
@@ -286,6 +298,78 @@ fun RaffleListScreen(
                         onMarketing = { onQuickMarketing(raffle) }
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun EmptyRafflesState(
+    pendingInvitationsCount: Int,
+    onCreateRaffleClick: () -> Unit,
+    onShowInvitations: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.padding(horizontal = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.primaryContainer,
+            modifier = Modifier.size(96.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = Icons.Default.ConfirmationNumber,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(48.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Text(
+            text = "Aún no tienes rifas",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Text(
+            text = "Crea tu primera rifa y empieza a vender tus números en minutos.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Button(
+            onClick = onCreateRaffleClick,
+            modifier = Modifier.fillMaxWidth().height(52.dp),
+            shape = RoundedCornerShape(16.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Crear mi primera rifa", fontWeight = FontWeight.Bold)
+        }
+
+        if (pendingInvitationsCount > 0) {
+            Spacer(modifier = Modifier.height(12.dp))
+            OutlinedButton(
+                onClick = onShowInvitations,
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Icon(Icons.Default.Notifications, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Ver invitaciones ($pendingInvitationsCount)")
             }
         }
     }
